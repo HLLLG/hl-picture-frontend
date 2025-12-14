@@ -19,7 +19,10 @@
       </a-col>
       <a-col flex="120px">
         <div class="user-login-status">
-          <a-button type="primary" href="/user/login">登录</a-button>
+          <div v-if="loginUserStores.loginUser.id">
+            {{ loginUserStores.loginUser.username ?? '无名' }}
+          </div>
+          <div v-else><a-button type="primary" href="/user/login">登录</a-button></div>
         </div>
       </a-col>
     </a-row>
@@ -31,6 +34,11 @@ import { h, ref } from 'vue'
 import { HomeOutlined } from '@ant-design/icons-vue'
 import { MenuProps } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
+import { useLoginUserStores } from '@/stores/useLoginUserStores.ts'
+
+const loginUserStores = useLoginUserStores()
+console.log(loginUserStores.loginUser.username)
+
 const items = ref<MenuProps['items']>([
   {
     key: '/',
