@@ -3,9 +3,9 @@ import { defineStore } from 'pinia'
 import { getLoginUserUsingGet } from '@/api/userController.ts'
 
 // 一个状态就存储一类要共享的数据（存一类常量）
-export const useLoginUserStores = defineStore('id', () => {
+export const useLoginUserStore = defineStore('id', () => {
   // 定义用户的初始值
-  const loginUser = ref<API.UserLoginRequest>({
+  const loginUser = ref<any>({
     userName: '未登录',
   })
 

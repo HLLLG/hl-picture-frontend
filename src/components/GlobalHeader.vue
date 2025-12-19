@@ -18,7 +18,6 @@
         />
       </a-col>
       <!-- 用户信息栏 -->
-
       <a-col flex="120px">
         <div class="user-login-status">
           <div v-if="loginUserStore.loginUser.id">
@@ -49,11 +48,10 @@ import { h, ref } from 'vue'
 import { HomeOutlined, LogoutOutlined } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
-import { useLoginUserStores } from '@/stores/useLoginUserStores.ts'
+import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { logoutUserUsingPost } from '@/api/userController.ts'
 
-const loginUserStore = useLoginUserStores()
-console.log(loginUserStore.loginUser.username)
+const loginUserStore = useLoginUserStore()
 
 const items = ref<MenuProps['items']>([
   {
@@ -63,9 +61,9 @@ const items = ref<MenuProps['items']>([
     title: '主页',
   },
   {
-    key: '/about',
-    label: '关于',
-    title: '关于',
+    key: '/admin/userManage',
+    label: '用户管理',
+    title: '用户管理',
   },
   {
     key: 'others',

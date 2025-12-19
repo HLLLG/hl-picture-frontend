@@ -40,11 +40,11 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
 import { userRegisterUsingPost } from '@/api/userController.ts'
-import { useLoginUserStores } from '@/stores/useLoginUserStores.ts'
+import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { message } from 'ant-design-vue'
 import router from '@/router'
 
-const loginUserStore = useLoginUserStores()
+const loginUserStore = useLoginUserStore()
 
 // 用于接收表单输入的值
 const formState = reactive<API.UserRegisterRequest>({

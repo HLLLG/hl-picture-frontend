@@ -9,7 +9,7 @@ const myAxios = axios.create({
 })
 
 // 全局请求拦截器
-axios.interceptors.request.use(
+myAxios.interceptors.request.use(
   function (config) {
     // 在发送请求之前做些什么
     return config
@@ -21,7 +21,7 @@ axios.interceptors.request.use(
 )
 
 // 全局响应拦截器
-axios.interceptors.response.use(
+myAxios.interceptors.response.use(
   function (response) {
     const { data } = response
     // 未登录

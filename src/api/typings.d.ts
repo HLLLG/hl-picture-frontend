@@ -103,8 +103,8 @@ declare namespace API {
   }
 
   type UserQueryRequest = {
+    current?: number
     id?: number
-    pageNo?: number
     pageSize?: number
     sortField?: string
     sortOrder?: string
