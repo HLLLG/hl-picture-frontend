@@ -28,6 +28,10 @@
               </a-space>
               <template #overlay>
                 <a-menu>
+                  <a-menu-item @click="doUpdateUser">
+                    <UserOutlined />
+                    个人中心
+                  </a-menu-item>
                   <a-menu-item @click="doLogout">
                     <LogoutOutlined />
                     退出登录
@@ -44,16 +48,16 @@
 </template>
 
 <script lang="ts" setup>
-import { h, ref } from 'vue'
-import { HomeOutlined, LogoutOutlined } from '@ant-design/icons-vue'
+import { computed, h, ref } from 'vue'
+import { HomeOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
-import { logoutUserUsingPost } from '@/api/userController.ts'
+import { logoutUserUsingPost, updateUserUsingPost } from '@/api/userController.ts'
 
 const loginUserStore = useLoginUserStore()
 
-const items = ref<MenuProps['items']>([
+const originMenu = [
   {
     key: '/',
     icon: () => h(HomeOutlined),
@@ -70,7 +74,8 @@ const items = ref<MenuProps['items']>([
     label: h('a', { href: 'https://github.com/HLLLG', target: '_blank' }, 'HL程序员'),
     title: 'HL程序员',
   },
-])
+]
+
 const router = useRouter()
 const current = ref<string[]>([])
 // 路由钩子，监听路由变化，高亮菜单项
@@ -94,11 +99,29 @@ const doLogout = async () => {
     })
     message.success('退出登录成功')
     await router.push({
-      path: 'user/login',
+      path: '/user/login',
     })
   } else {
     message.error('退出登录失败，' + res.data.message)
   }
+}
+// 过滤菜单
+const filterMenu = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    if (menu?.key?.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.userRole !== 'admin') {
+        return false
+      }
+    }
+    return true
+  })
+}
+// 展示在菜单的路由数组
+const items = computed<MenuProps['items']>(() => filterMenu(originMenu))
+
+const doUpdateUser = () => {
+  router.push('/user/update')
 }
 </script>
 

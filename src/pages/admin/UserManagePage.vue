@@ -20,22 +20,61 @@
       :pagination="pagination"
       @change="doTableChange"
     >
-      <template #bodyCell="{ column, record }">
+      <template #bodyCell="{ column, text, record }">
+        <template v-if="['userAccount', 'userName', 'userProfile'].includes(column.dataIndex)">
+          <div>
+            <a-input
+              v-if="editableData[record.id]"
+              v-model:value="editableData[record.id][column.dataIndex]"
+              style="margin: -5px 0"
+            />
+            <template v-else>
+              {{ text }}
+            </template>
+          </div>
+        </template>
         <template v-if="column.dataIndex === 'userAvatar'">
-          <a-image :src="record.userAvatar" :width="80" :height="100" />
+          <div>
+            <a-input
+              v-if="editableData[record.id]"
+              v-model:value="editableData[record.id][column.dataIndex]"
+              style="margin: -5px 0"
+            />
+            <a-image v-else :src="record.userAvatar" :width="80" :height="100" />
+          </div>
         </template>
         <template v-else-if="column.dataIndex === 'userRole'">
-          <div v-if="record.userRole === 'admin'">
-            <a-tag color="green">管理员</a-tag>
-          </div>
-          <div v-else>
-            <a-tag color="blue">普通用户</a-tag>
+          <div>
+            <a-input
+              v-if="editableData[record.id]"
+              v-model:value="editableData[record.id][column.dataIndex]"
+              style="margin: -5px 0"
+            />
+            <div v-else>
+              <div v-if="record.userRole === 'admin'">
+                <a-tag color="green">管理员</a-tag>
+              </div>
+              <div v-else>
+                <a-tag color="blue">普通用户</a-tag>
+              </div>
+            </div>
           </div>
         </template>
         <template v-else-if="column.dataIndex === 'createTime'">
           {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
         <template v-else-if="column.key === 'action'">
+          <div>
+            <span v-if="editableData[record.id]" class="editAction">
+              <a-typography-link @click="save(record.id)">保存</a-typography-link>
+              <a-popconfirm title="取消修改?" @confirm="cancel(record.id)">
+                <a>取消</a>
+              </a-popconfirm>
+            </span>
+            <span v-else>
+              <a-button @click="edit(record.id)">编辑</a-button>
+            </span>
+          </div>
           <a-button danger @click="doDelete(record.id)">删除</a-button>
         </template>
       </template>
@@ -43,10 +82,15 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { deleteUserUsingPost, listUserVoByPageUsingPost } from '@/api/userController.ts'
+import { computed, onMounted, reactive, ref, type UnwrapRef } from 'vue'
+import {
+  deleteUserUsingPost,
+  listUserVoByPageUsingPost,
+  updateUserUsingPost,
+} from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import { cloneDeep } from 'lodash-es'
 
 const columns = [
   {
@@ -150,6 +194,39 @@ const doDelete = async (id: string) => {
     message.error('删除失败，' + res.data.message)
   }
 }
+// 用于保存当前处于编辑状态的单元格，相当于一个Map，存储了<id, record>
+const editableData: UnwrapRef<Record<string, API.UserVO>> = reactive({})
+
+const edit = (id: string) => {
+  // 通过cloneDeep深拷贝一个副本，不在原属性上做改变
+  editableData[id] = cloneDeep(dataList.value.filter((item) => id === item.id)[0])
+}
+const save = async (id: string) => {
+  // 当点击保存时，直接将修改后的值赋给item，可以少一次查询后端
+  Object.assign(dataList.value.filter((item) => id === item.id)[0], editableData[id])
+  const updateRequest: API.UserUpdateRequest = {
+    ...editableData[id],
+  }
+  const res = await updateUserUsingPost(updateRequest)
+  if (res.data.code === 0) {
+    message.success('保存成功')
+    // 也可以更新用户后再查一次后端
+    // fetchData()
+  } else {
+    message.error('保存失败，' + res.data.message)
+  }
+  delete editableData[id]
+}
+// 取消编辑
+const cancel = (id: string) => {
+  // 删除editableData中的键值对
+  delete editableData[id]
+}
 </script>
 
-<style scoped></style>
+<style scoped>
+#userManagePage .editAction {
+  display: flex;
+  gap: 10px;
+}
+</style>

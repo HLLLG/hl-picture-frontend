@@ -17,6 +17,8 @@
     "@ant-design/icons-vue": "^7.0.1",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.13.2",
+    "deepclone": "^1.0.2",
+    "lodash": "^4.17.21",
     "pinia": "^2.2.6",
     "tslib": "^2.8.1",
     "vue": "^3.5.13",
