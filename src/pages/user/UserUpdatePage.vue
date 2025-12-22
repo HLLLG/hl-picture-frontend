@@ -1,30 +1,10 @@
 <template>
   <div id="userUpdatePage">
     <div class="title">
-      <h1>个人资料修改</h1>
+      <h1>个人资料</h1>
     </div>
     <!-- 表单 -->
-    <a-form :model="userVO" class="form-container">
-      <a-form-item label="id">
-        <div>{{ loginUser.id }}</div>
-      </a-form-item>
-
-      <a-form-item label="账号">
-        <a-input
-          v-if="editableData[loginUser.id]"
-          v-model:value="editableData[loginUser.id]['userAccount']"
-        />
-        <div v-else>{{ loginUser.userAccount }}</div>
-      </a-form-item>
-
-      <a-form-item label="用户名">
-        <a-input
-          v-if="editableData[loginUser.id]"
-          v-model:value="editableData[loginUser.id]['userName']"
-        />
-        <div v-else>{{ loginUser.userName }}</div>
-      </a-form-item>
-
+    <a-form :model="userVO" class="form">
       <a-form-item label="头像">
         <a-input
           v-if="editableData[loginUser.id]"
@@ -33,6 +13,21 @@
         <div v-else>
           <a-image :src="loginUser.userAvatar" width="80px" height="100px"></a-image>
         </div>
+      </a-form-item>
+      <a-form-item label="用户名">
+        <a-input
+          v-if="editableData[loginUser.id]"
+          v-model:value="editableData[loginUser.id]['userName']"
+        />
+        <div v-else>{{ loginUser.userName }}</div>
+      </a-form-item>
+
+      <a-form-item label="账号">
+        <a-input
+          v-if="editableData[loginUser.id]"
+          v-model:value="editableData[loginUser.id]['userAccount']"
+        />
+        <div v-else>{{ loginUser.userAccount }}</div>
       </a-form-item>
 
       <a-form-item label="简介">
@@ -53,22 +48,39 @@
           </div>
         </div>
       </a-form-item>
+      <a-form-item label="id">
+        <div>{{ loginUser.id }}</div>
+      </a-form-item>
 
       <a-form-item label="创建时间">
-        {{ dayjs(loginUser.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+        <div>
+          {{ dayjs(loginUser.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+        </div>
       </a-form-item>
 
       <a-form-item>
-        <div class="form-actions">
-          <span v-if="editableData[loginUser.id]" class="editAction">
+        <div class="editAction">
+          <span v-if="editableData[loginUser.id]" class="editActionBtn">
             <a-typography-link @click="save(loginUser.id)">保存</a-typography-link>
-            <a-popconfirm title="取消修改?" @confirm="cancel(loginUser.id)">
+            <a-popconfirm
+              title="是否取消修改?"
+              ok-text="是"
+              cancel-text="否"
+              @confirm="cancel(loginUser.id)"
+            >
               <a>取消</a>
             </a-popconfirm>
           </span>
           <span v-else>
-            <a-button @click="edit(loginUser.id)">编辑</a-button>
+            <a-button @click="edit(loginUser.id)" class="custom-button">
+              <EditOutlined />
+              编辑
+            </a-button>
           </span>
+          <a-button @click="rollBack()" class="custom-button">
+            <RollbackOutlined />
+            返回
+          </a-button>
         </div>
       </a-form-item>
     </a-form>
@@ -82,6 +94,7 @@ import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { message } from 'ant-design-vue'
 import { cloneDeep } from 'lodash-es'
 import dayjs from 'dayjs'
+import { EditOutlined, RollbackOutlined } from '@ant-design/icons-vue'
 
 const userVO = reactive<API.UserVO>({})
 const loginUserStore = useLoginUserStore()
@@ -91,6 +104,10 @@ const editableData: UnwrapRef<Record<string, API.UserVO>> = reactive({})
 
 const edit = (id: string) => {
   editableData[id] = cloneDeep(loginUser)
+}
+
+const rollBack = () => {
+  window.history.length > 1 ? window.history.back() : (window.location.href = '/')
 }
 
 const save = async (id: string) => {
@@ -116,9 +133,9 @@ const cancel = (id: string) => {
 #userUpdatePage {
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   padding: 20px;
   background-color: #f4f4f4;
+  min-height: 100vh;
 }
 
 .title {
@@ -126,10 +143,9 @@ const cancel = (id: string) => {
   margin-bottom: 30px; /* 增加标题和内容之间的间距 */
 }
 
-.form-container {
+.form {
   margin-left: auto;
   margin-right: auto;
-  height: 100vh;
   width: 100%;
   max-width: 600px;
   background-color: #fff;
@@ -141,13 +157,28 @@ const cancel = (id: string) => {
 .editAction {
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
 }
 
-.form-actions {
+.editActionBtn {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
+  gap: 10px;
+}
+
+:deep(.ant-form-item-label) {
+  font-weight: bold; /* 加粗文本 */
+  color: #333; /* 更改文本颜色 */
+  width: 100px;
+  text-align: left;
+}
+
+.custom-button {
+  background-color: #f0f8ff; /* 设置背景色 */
+  border-color: #f0f8ff; /* 设置边框色 */
+  color: black; /* 设置文字颜色 */
+}
+
+.custom-button:hover {
+  background-color: #89cff0; /* 悬停时的背景色 */
+  border-color: #89cff0; /* 悬停时的边框色 */
 }
 </style>

@@ -67,7 +67,12 @@
           <div>
             <span v-if="editableData[record.id]" class="editAction">
               <a-typography-link @click="save(record.id)">保存</a-typography-link>
-              <a-popconfirm title="取消修改?" @confirm="cancel(record.id)">
+              <a-popconfirm
+                title="是否取消修改?"
+                ok-text="是"
+                cancel-text="否"
+                @confirm="cancel(record.id)"
+              >
                 <a>取消</a>
               </a-popconfirm>
             </span>
