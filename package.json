@@ -18,6 +18,7 @@
     "ant-design-vue": "^4.2.6",
     "axios": "^1.13.2",
     "deepclone": "^1.0.2",
+    "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
     "pinia": "^2.2.6",
     "tslib": "^2.8.1",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.0",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^22.9.3",
     "@umijs/openapi": "^1.14.1",
     "@vitejs/plugin-vue": "^5.2.1",

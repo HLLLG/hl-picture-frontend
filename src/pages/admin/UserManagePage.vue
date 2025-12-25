@@ -170,7 +170,7 @@ const fetchData = async () => {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0
   } else {
-    message.error('获取数据失败' + res.data.data.message)
+    message.error('获取数据失败' + res.data.message)
   }
 }
 
