@@ -57,9 +57,28 @@
             <a-button v-if="canEdit" :icon="h(EditOutlined)" type="default" @click="doEdit"
               >编辑</a-button
             >
-            <a-button v-if="canEdit" :icon="h(DeleteOutlined)" danger @click="doDelete"
-              >删除</a-button
+            <a-popconfirm
+              title="是否删除"
+              ok-text="是"
+              cancel-text="否"
+              @confirm="confirm"
+              @cancel="cancel"
             >
+              <a-button :icon="h(DeleteOutlined)" danger>删除</a-button>
+            </a-popconfirm>
+            <a-button v-if="idAdmin" :icon="h(CloseOutlined)" @click="showRejectModal" danger
+              >拒绝</a-button
+            >
+            <a-modal
+              v-model:open="open"
+              title="拒绝原因"
+              @ok="doReject(PIC_REVIEW_STATUS_ENUM.REJECT)"
+            >
+              <a-input
+                v-model:value="rejectReviewMessage"
+                placeholder="请输入拒绝原因，默认管理员操作拒绝"
+              ></a-input>
+            </a-modal>
           </a-space>
         </a-card>
       </a-col>
@@ -69,12 +88,22 @@
 
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { deletePictureUsingPost, getPictureVoByIdUsingPost } from '@/api/pictureController.ts'
+import {
+  deletePictureUsingPost,
+  doPictureReviewUsingPost,
+  getPictureVoByIdUsingPost,
+} from '@/api/pictureController.ts'
 import { computed, h, onMounted, ref } from 'vue'
 import { downloadImage, formatSize } from '@/utils'
-import { DeleteOutlined, DownloadOutlined, EditOutlined } from '@ant-design/icons-vue'
+import {
+  DeleteOutlined,
+  DownloadOutlined,
+  EditOutlined,
+  CloseOutlined,
+} from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { useRouter } from 'vue-router'
+import { PIC_REVIEW_STATUS_ENUM } from '@/constants/Picture.ts'
 
 interface Props {
   id: string
@@ -108,9 +137,19 @@ const doDelete = async () => {
   const res = await deletePictureUsingPost({ id })
   if (res.data.code === 0) {
     message.success('删除成功')
+    // 刷新数据
+    fetchPictureDetail
   } else {
     message.error('删除失败，' + res.data.message)
   }
+}
+// 删除确认
+const confirm = async (id: string) => {
+  await doDelete()
+}
+// 删除取消
+const cancel = (e: MouseEvent) => {
+  message.error('取消删除')
 }
 
 const loginUserStore = useLoginUserStore()
@@ -123,8 +162,50 @@ const canEdit = computed(() => {
     return false
   }
   // 仅本人或管理员可编辑
-  return loginUser.id === picture.value.userVO?.id || loginUser.id === 'admin'
+  return loginUser.id === picture.value.userVO?.id || loginUser.userRole === 'admin'
 })
+// 判断用户是否是管理员
+const idAdmin = computed(() => {
+  const loginUser = loginUserStore.loginUser
+  // 未登录不可审核
+  if (!loginUser) {
+    return false
+  }
+  // 仅管理员可编辑
+  return loginUser.userRole === 'admin'
+})
+
+// 拒绝时可填写信息
+const open = ref<boolean>(false)
+const rejectReviewMessage = ref<string>('')
+const showRejectModal = () => {
+  rejectReviewMessage.value = '管理员操作拒绝'
+  open.value = true
+}
+
+const doReject = async (reviewStatus: number) => {
+  if (rejectReviewMessage.value === '' || !reviewStatus) {
+    rejectReviewMessage.value = '管理员操作拒绝'
+  }
+  await handleReview(reviewStatus)
+  open.value = false
+}
+// 审核图片
+const handleReview = async (reviewStatus: number) => {
+  const params = {
+    id: picture.value.id,
+    reviewStatus: reviewStatus,
+    reviewMessage: rejectReviewMessage.value,
+  }
+  const res = await doPictureReviewUsingPost(params)
+  if (res.data.code === 0) {
+    message.success('审核操作成功')
+    // 刷新数据
+    fetchPictureDetail()
+  } else {
+    message.error('审核操作失败，' + res.data.message)
+  }
+}
 
 // 跳转到编辑页面
 const router = useRouter()

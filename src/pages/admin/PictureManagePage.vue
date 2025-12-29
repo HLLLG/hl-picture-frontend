@@ -21,6 +21,15 @@
           allow-clear
         />
       </a-form-item>
+      <a-form-item name="reviewStatus" label="审核状态">
+        <a-select
+          v-model:value="searchParams.reviewStatus"
+          placeholder="请选择审核状态"
+          :options="PIC_REVIEW_STATUS_OPTIONS"
+          style="min-width: 180px"
+          allow-clear
+        />
+      </a-form-item>
       <a-form-item>
         <a-button type="primary" html-type="submit">搜索</a-button>
       </a-form-item>
@@ -49,6 +58,14 @@
           <div>宽高比：{{ record.picScale }}</div>
           <div>大小：{{ (record.picSize / 1024).toFixed(2) }}KB</div>
         </template>
+        <template v-else-if="column.dataIndex === 'reviewMessage'">
+          <div>审核状态：{{ PIC_REVIEW_STATUS_MAP[record.reviewStatus] }}</div>
+          <div>审核人：{{ record.reviewerId }}</div>
+          <div>审核信息：{{ record.reviewMessage }}</div>
+          <div v-if="record.reviewTime">
+            审核时间：{{ dayjs(record.reviewTime).format('YYYY-MM-DD HH:mm:ss') }}
+          </div>
+        </template>
         <template v-else-if="column.dataIndex === 'createTime'">
           {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
@@ -57,10 +74,39 @@
         </template>
         <template v-else-if="column.key === 'action'">
           <a-space wrap>
+            <a-button
+              v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.PASS"
+              @click="handleReview(record, PIC_REVIEW_STATUS_ENUM.PASS)"
+              >通过</a-button
+            >
+            <a-button
+              v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.REJECT"
+              @click="showRejectModal(record)"
+              danger
+              >拒绝</a-button
+            >
+            <a-modal
+              v-model:open="open"
+              title="拒绝原因"
+              @ok="doReject(PIC_REVIEW_STATUS_ENUM.REJECT)"
+            >
+              <a-input
+                v-model:value="rejectReviewMessage"
+                placeholder="请输入拒绝原因，默认管理员操作拒绝"
+              ></a-input>
+            </a-modal>
             <a-button type="link" :href="`/add_picture?id=${record.id}`" target="_blank"
               >编辑</a-button
             >
-            <a-button danger @click="doDelete(record.id)">删除</a-button>
+            <a-popconfirm
+              title="是否删除"
+              ok-text="是"
+              cancel-text="否"
+              @confirm="confirm(record.id)"
+              @cancel="cancel"
+            >
+              <a-button danger>删除</a-button>
+            </a-popconfirm>
           </a-space>
         </template>
       </template>
@@ -72,7 +118,16 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { deleteUserUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import { listPictureByPageUsingPost } from '@/api/pictureController.ts'
+import {
+  deletePictureUsingPost,
+  doPictureReviewUsingPost,
+  listPictureByPageUsingPost,
+} from '@/api/pictureController.ts'
+import {
+  PIC_REVIEW_STATUS_ENUM,
+  PIC_REVIEW_STATUS_MAP,
+  PIC_REVIEW_STATUS_OPTIONS,
+} from '@/constants/Picture.ts'
 
 const columns = [
   {
@@ -109,6 +164,10 @@ const columns = [
     title: '用户id',
     dataIndex: 'userId',
     width: 80,
+  },
+  {
+    title: '审核信息',
+    dataIndex: 'reviewMessage',
   },
   {
     title: '创建时间',
@@ -182,7 +241,7 @@ const doDelete = async (id: string) => {
   if (!id) {
     return
   }
-  const res = await deleteUserUsingPost({ id })
+  const res = await deletePictureUsingPost({ id })
   if (res.data.code === 0) {
     message.success('删除成功')
     // 刷新数据
@@ -191,11 +250,55 @@ const doDelete = async (id: string) => {
     message.error('删除失败，' + res.data.message)
   }
 }
+
+// 审核图片
+const handleReview = async (record: API.Picture, reviewStatus: number) => {
+  // 管理员自动通过
+  const reviewMessage =
+    reviewStatus === PIC_REVIEW_STATUS_ENUM.PASS ? '管理员操作通过' : record.reviewMessage
+  const params = {
+    id: record.id,
+    reviewStatus: reviewStatus,
+    reviewMessage: reviewMessage,
+  }
+  const res = await doPictureReviewUsingPost(params)
+  if (res.data.code === 0) {
+    message.success('审核操作成功')
+    // 刷新数据
+    fetchData()
+  } else {
+    message.error('审核操作失败，' + res.data.message)
+  }
+}
+// 拒绝时可填写信息
+const open = ref<boolean>(false)
+const rejectReviewMessage = ref<string>('')
+const currentRecord = ref<API.Picture>({})
+const showRejectModal = (record: API.Picture) => {
+  currentRecord.value = record
+  rejectReviewMessage.value = '管理员操作拒绝'
+  open.value = true
+}
+
+const doReject = async (reviewStatus: number) => {
+  if (rejectReviewMessage.value === '' || !reviewStatus) {
+    rejectReviewMessage.value = '管理员操作拒绝'
+  }
+  await handleReview(
+    { ...currentRecord.value, reviewMessage: rejectReviewMessage.value },
+    reviewStatus,
+  )
+  open.value = false
+}
+
+// 删除确认
+const confirm = async (id: string) => {
+  await doDelete(id)
+}
+// 删除取消
+const cancel = (e: MouseEvent) => {
+  message.error('取消删除')
+}
 </script>
 
-<style scoped>
-#userManagePage .editAction {
-  display: flex;
-  gap: 10px;
-}
-</style>
+<style scoped></style>
