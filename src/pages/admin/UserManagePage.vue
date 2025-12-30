@@ -64,23 +64,27 @@
           {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
         <template v-else-if="column.key === 'action'">
-          <div>
-            <span v-if="editableData[record.id]" class="editAction">
-              <a-typography-link @click="save(record.id)">保存</a-typography-link>
-              <a-popconfirm
-                title="是否取消修改?"
-                ok-text="是"
-                cancel-text="否"
-                @confirm="cancel(record.id)"
-              >
-                <a>取消</a>
-              </a-popconfirm>
-            </span>
-            <span v-else>
-              <a-button @click="edit(record.id)">编辑</a-button>
-            </span>
-          </div>
-          <a-button danger @click="doDelete(record.id)">删除</a-button>
+          <a-space wrap v-if="editableData[record.id]" class="editActionBtn">
+            <a-typography-link @click="save(record.id)">保存</a-typography-link>
+            <a-popconfirm
+              title="是否取消修改?"
+              ok-text="是"
+              cancel-text="否"
+              @confirm="cancel(record.id)"
+            >
+              <a>取消</a>
+            </a-popconfirm>
+          </a-space>
+          <a-space v-else>
+            <a-button @click="edit(record.id)" class="custom-button">
+              <EditOutlined />
+              编辑
+            </a-button>
+            <a-button danger @click="doDelete(record.id)">
+              <DeleteOutlined />
+              删除</a-button
+            >
+          </a-space>
         </template>
       </template>
     </a-table>
@@ -96,6 +100,7 @@ import {
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { cloneDeep } from 'lodash-es'
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 
 const columns = [
   {
@@ -229,9 +234,4 @@ const cancel = (id: string) => {
 }
 </script>
 
-<style scoped>
-#userManagePage .editAction {
-  display: flex;
-  gap: 10px;
-}
-</style>
+<style scoped></style>

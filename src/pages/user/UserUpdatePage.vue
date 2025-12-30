@@ -59,29 +59,27 @@
       </a-form-item>
 
       <a-form-item>
-        <div class="editAction">
-          <span v-if="editableData[loginUser.id]" class="editActionBtn">
-            <a-typography-link @click="save(loginUser.id)">保存</a-typography-link>
-            <a-popconfirm
-              title="是否取消修改?"
-              ok-text="是"
-              cancel-text="否"
-              @confirm="cancel(loginUser.id)"
-            >
-              <a>取消</a>
-            </a-popconfirm>
-          </span>
-          <span v-else>
-            <a-button @click="edit(loginUser.id)" class="custom-button">
-              <EditOutlined />
-              编辑
-            </a-button>
-          </span>
+        <a-space v-if="editableData[loginUser.id]" class="editActionBtn">
+          <a-typography-link @click="save(loginUser.id)">保存</a-typography-link>
+          <a-popconfirm
+            title="是否取消修改?"
+            ok-text="是"
+            cancel-text="否"
+            @confirm="cancel(loginUser.id)"
+          >
+            <a>取消</a>
+          </a-popconfirm>
+        </a-space>
+        <a-space v-else>
+          <a-button @click="edit(loginUser.id)" class="custom-button">
+            <EditOutlined />
+            编辑
+          </a-button>
           <a-button @click="rollBack()" class="custom-button">
             <RollbackOutlined />
             返回
           </a-button>
-        </div>
+        </a-space>
       </a-form-item>
     </a-form>
   </div>
@@ -152,11 +150,6 @@ const cancel = (id: string) => {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.editAction {
-  display: flex;
-  gap: 10px;
 }
 
 .editActionBtn {
