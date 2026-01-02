@@ -3,11 +3,12 @@
     <h1 style="margin-bottom: 16px">
       {{ route.query?.id ? '修改图片' : '创建图片' }}
     </h1>
+    <!-- 选择上传方式   -->
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
         <PictureUpload :picture="picture" :onSuccess="onSuccess" />
       </a-tab-pane>
-      <a-tab-pane key="url" tab="URL上传" force-render>
+      <a-tab-pane key="url" tab="URL 上传" force-render>
         <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>

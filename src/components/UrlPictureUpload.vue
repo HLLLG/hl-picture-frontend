@@ -1,16 +1,18 @@
 <template>
-  <div class="urlpictureUpload">
+  <div class="urlPictureUpload">
     <a-input-group compact>
       <a-input
         v-model:value="fileUrl"
         placeholder="请输入图片url地址"
-        style="width: calc(100% - 200px)"
+        style="width: calc(100% - 120px)"
       />
       <a-button type="primary" :loading="loading" @click="handleUploadByUrl" style="width: 120px"
         >上传</a-button
       >
     </a-input-group>
-    <a-image v-if="picture?.url" :src="picture?.url" alt="avatar"></a-image>
+    <div class="img-wrapper">
+      <a-image v-if="picture?.url" :src="picture?.url" alt="avatar"></a-image>
+    </div>
   </div>
 </template>
 
@@ -58,25 +60,19 @@ const handleUploadByUrl = async () => {
 </script>
 
 <style scoped>
-.pictureUpload :deep(.ant-upload) {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 152px;
-  min-width: 152px;
+.urlPictureUpload {
+  margin-bottom: 16px;
 }
 
-.pictureUpload img {
+.urlPictureUpload :deep(.ant-image-img) {
   max-width: 100%;
   max-height: 480px;
+  margin-left: 0;
+  margin-right: 0;
 }
 
-.ant-upload-select-picture-card i {
-  font-size: 32px;
-  color: #999;
-}
-
-.ant-upload-select-picture-card .ant-upload-text {
-  margin-top: 8px;
-  color: #666;
+.urlPictureUpload .img-wrapper {
+  text-align: center;
+  margin-top: 16px;
 }
 </style>
