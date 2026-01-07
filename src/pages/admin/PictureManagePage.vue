@@ -208,8 +208,8 @@ const searchParams = reactive<API.PictureQueryRequest>({
 // 分页参数
 const pagination = computed(() => {
   return {
-    current: searchParams.current,
-    pageSize: searchParams.pageSize,
+    current: searchParams.current ?? 1,
+    pageSize: searchParams.pageSize ?? 10,
     total: total.value,
     showSizeChanger: true,
     showTotal: (total) => `共 ${total} 条`,
@@ -232,7 +232,7 @@ const fetchData = async () => {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0
   } else {
-    message.error('获取数据失败' + res.data.data.message)
+    message.error('获取数据失败' + res.data.message)
   }
 }
 
