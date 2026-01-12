@@ -4,7 +4,10 @@
     <a-flex justify="space-between">
       <h2>图片上传</h2>
       <a-space>
-        <a-button type="primary" href="/add_picture" target="_blank">创建图片</a-button>
+        <a-button type="primary" @click="showModal">+ 创建图片</a-button>
+        <a-modal v-model:open="createModalOpen" width="100%" destroyOnClose :footer="null">
+          <AddPicturePage />
+        </a-modal>
         <a-button type="primary" href="/add_picture/batch" target="_blank" ghost
           >批量创建图片</a-button
         >
@@ -139,6 +142,7 @@ import {
   PIC_REVIEW_STATUS_MAP,
   PIC_REVIEW_STATUS_OPTIONS,
 } from '@/constants/Picture.ts'
+import AddPicturePage from '@/pages/AddPicturePage.vue'
 
 const columns = [
   {
@@ -174,6 +178,11 @@ const columns = [
   {
     title: '用户id',
     dataIndex: 'userId',
+    width: 80,
+  },
+  {
+    title: '空间id',
+    dataIndex: 'spaceId',
     width: 80,
   },
   {
@@ -227,6 +236,7 @@ const doTableChange = (page: any) => {
 const fetchData = async () => {
   const res = await listPictureByPageUsingPost({
     ...searchParams,
+    nullSpaceId: true,
   })
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []
@@ -309,6 +319,12 @@ const confirm = async (id: string) => {
 // 删除取消
 const cancel = (e: MouseEvent) => {
   message.error('取消删除')
+}
+
+const createModalOpen = ref<boolean>(false)
+
+const showModal = () => {
+  createModalOpen.value = true
 }
 </script>
 

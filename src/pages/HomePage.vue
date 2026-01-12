@@ -28,52 +28,26 @@
         </a-checkable-tag>
       </a-space>
     </div>
-    <!-- 图片列表 -->
-    <a-list
-      :grid="{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 5, xxl: 6 }"
-      :data-source="dataList"
-      :pagination="pagination"
-      :loading="loading"
-    >
-      <template #renderItem="{ item: picture }">
-        <a-list-item style="padding: 0">
-          <a-card hoverable>
-            <!-- 单张图片 -->
-            <template #cover>
-              <img
-                :src="picture.thumbnailUrl ?? picture.url"
-                :alt="picture.name"
-                style="height: 180px; object-fit: cover"
-                @click="doClickPicture(picture)"
-              />
-            </template>
-            <a-card-meta :title="picture.name">
-              <template #description>
-                <a-flex>
-                  <a-tag color="green">
-                    {{ picture.category ?? '默认' }}
-                  </a-tag>
-                  <a-tag v-for="tag in picture.tags" :key="tag">
-                    {{ tag }}
-                  </a-tag>
-                </a-flex>
-              </template>
-            </a-card-meta>
-          </a-card>
-        </a-list-item>
-      </template>
-    </a-list>
+    <!-- 展示图片组件 -->
+    <PictureList :dataList="dataList" :loading="loading" />
+    <a-pagination
+      style="text-align: right"
+      v-model:current="searchParams.current"
+      v-model:pageSize="searchParams.pageSize"
+      :total="total"
+      @change="onPageChange"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import {
   listPictureTagCategoryUsingGet,
   listPictureVoByPageUsingPost,
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
-import { useRouter } from 'vue-router'
+import PictureList from '@/components/PictureList.vue'
 
 // 图片数据列表
 const dataList = ref<API.PictureVO[]>([])
@@ -88,19 +62,11 @@ const searchParams = reactive<API.PictureQueryRequest>({
   sortOrder: 'descend',
 })
 
-// 分页参数
-const pagination = computed(() => {
-  return {
-    current: searchParams.current,
-    pageSize: searchParams.pageSize,
-    total: total.value,
-    onChange: (page: number, pageSize: number) => {
-      searchParams.current = page
-      searchParams.pageSize = pageSize
-      fetchData()
-    },
-  }
-})
+const onPageChange = (page: number, pageSize: number) => {
+  searchParams.current = page
+  searchParams.pageSize = pageSize
+  fetchData()
+}
 
 // 获取图片数据
 const fetchData = async () => {
@@ -123,7 +89,7 @@ const fetchData = async () => {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0
   } else {
-    message.error('获取数据失败' + res.data.data.message)
+    message.error('获取数据失败' + res.data.message)
   }
   loading.value = false
 }
@@ -150,15 +116,6 @@ const getTagCategoryOptions = async () => {
     message.error('加载选项失败，' + res.data.message)
   }
 }
-
-const router = useRouter()
-
-const doClickPicture = (picture: API.PictureVO) => {
-  router.push({
-    path: `/picture/${picture.id}`,
-  })
-}
-
 // 页面请求的时候加载一次
 onMounted(() => {
   fetchData()

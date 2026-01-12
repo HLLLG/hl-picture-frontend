@@ -214,6 +214,7 @@ const doEdit = () => {
     path: '/add_picture?id=',
     query: {
       id: picture.value.id,
+      spaceId: picture.value.spaceId,
     },
   })
 }
@@ -229,7 +230,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-#PictureDetailPage {
+#pictureDetailPage {
   margin-bottom: 16px;
 }
 </style>

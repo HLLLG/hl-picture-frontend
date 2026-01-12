@@ -28,9 +28,17 @@
               </a-space>
               <template #overlay>
                 <a-menu>
-                  <a-menu-item @click="doUpdateUser">
-                    <UserOutlined />
-                    个人中心
+                  <router-link to="/user/update">
+                    <a-menu-item>
+                      <ContactsOutlined />
+                      个人中心
+                    </a-menu-item>
+                  </router-link>
+                  <a-menu-item>
+                    <router-link to="/my_space">
+                      <UserOutlined />
+                      我的空间
+                    </router-link>
                   </a-menu-item>
                   <a-menu-item @click="doLogout">
                     <LogoutOutlined />
@@ -49,11 +57,11 @@
 
 <script lang="ts" setup>
 import { computed, h, ref } from 'vue'
-import { HomeOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { ContactsOutlined, HomeOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
-import { logoutUserUsingPost, updateUserUsingPost } from '@/api/userController.ts'
+import { logoutUserUsingPost } from '@/api/userController.ts'
 
 const loginUserStore = useLoginUserStore()
 
@@ -134,10 +142,6 @@ const filterMenu = (menus = [] as MenuProps['items']) => {
 }
 // 展示在菜单的路由数组
 const items = computed<MenuProps['items']>(() => filterMenu(originMenu))
-
-const doUpdateUser = () => {
-  router.push('/user/update')
-}
 </script>
 
 <style scoped>

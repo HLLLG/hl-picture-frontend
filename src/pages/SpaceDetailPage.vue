@@ -1,53 +1,82 @@
 <template>
-  <div id="homePage">
-    <div class="search-bar">
-      <!-- 搜索框 -->
-      <a-input-search
-        v-model:value="searchParams.searchText"
-        placeholder="从海量图片中搜索"
-        enter-button="搜索"
-        size="large"
-        @search="doSearch"
-      />
-    </div>
-    <!-- 分类和标签 -->
-    <a-tabs v-model:activeKey="selectCategory" @change="doSearch">
-      <a-tab-pane key="all" tab="全部"></a-tab-pane>
-      <a-tab-pane v-for="category in categoryList" :key="category" :tab="category"></a-tab-pane>
-    </a-tabs>
-    <div class="tag-bar">
-      <span style="margin-right: 8px">标签:</span>
-      <a-space :size="[0, 8]" wrap>
-        <a-checkable-tag
-          v-for="(tag, index) in tagList"
-          :key="tag"
-          v-model:checked="selectTagList[index]"
-          @change="doSearch"
-        >
-          {{ tag }}
-        </a-checkable-tag>
+  <div id="space-detail-page">
+    <!-- 空间信息 -->
+    <a-flex justify="space-between">
+      <a-space align="baseline">
+        <div v-if="space.spaceLevel === SPACE_LEVEL_ENUM.FLAGSHIP" class="flagship-icon">💎</div>
+        <h2>{{ space.spaceName }}</h2>
       </a-space>
-    </div>
-    <!-- 展示图片组件 -->
-    <PictureList
-      :pictures="dataList"
-      :loading="loading"
-      :pagination="pagination"
-      @clickPicture="doClickPicture"
+      <a-space size="middle">
+        <a-button type="primary" @click="showModal">+ 创建图片</a-button>
+        <a-modal v-model:open="open" width="100%" destroyOnClose :footer="null">
+          <AddPicturePage :spaceId="props.id" />
+        </a-modal>
+        <a-tooltip placement="topRight">
+          <template #title
+            >占用空间：{{ formatSize(space.totalSize) }} / {{ formatSize(space.maxSize) }}</template
+          >
+          <a-progress
+            type="circle"
+            :percent="((space.totalSize * 100) / space.maxSize).toFixed(2)"
+            :size="48"
+          />
+        </a-tooltip>
+      </a-space>
+    </a-flex>
+    <div style="margin-bottom: 16px"></div>
+    <!-- 展示空间组件 -->
+    <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData" />
+    <!-- 分页参数 -->
+    <a-pagination
+      style="text-align: right"
+      v-model:current="searchParams.current"
+      v-model:pageSize="searchParams.pageSize"
+      :total="total"
+      @change="onPageChange"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
-import {
-  listPictureTagCategoryUsingGet,
-  listPictureVoByPageUsingPost,
-} from '@/api/pictureController.ts'
+import { onMounted, reactive, ref } from 'vue'
+import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
-import { useRouter } from 'vue-router'
 import PictureList from '@/components/PictureList.vue'
+import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
+import { formatSize } from '@/utils'
+import { SPACE_LEVEL_ENUM } from '@/constants/Space.ts'
+import AddPicturePage from '@/pages/AddPicturePage.vue'
 
+interface Props {
+  id: string
+}
+const props = defineProps<Props>()
+
+const open = ref<boolean>(false)
+
+const showModal = () => {
+  open.value = true
+}
+
+// ---------------------获取空间数据---------------------------
+const space = ref<API.SpaceVO>({})
+
+const fetchSpaceDetail = async () => {
+  try {
+    const res = await getSpaceVoByIdUsingPost({
+      id: props.id,
+    })
+    if (res.data.data) {
+      space.value = res.data.data
+    } else {
+      message.error('获取空间详情失败，' + res.data.message)
+    }
+  } catch (error: any) {
+    console.error('获取空间详情失败，', error)
+  }
+}
+
+// ---------------------获取图片数据---------------------------
 // 图片数据列表
 const dataList = ref<API.PictureVO[]>([])
 // 图片数
@@ -61,95 +90,44 @@ const searchParams = reactive<API.PictureQueryRequest>({
   sortOrder: 'descend',
 })
 
-// 分页参数
-const pagination = computed(() => {
-  return {
-    current: searchParams.current,
-    pageSize: searchParams.pageSize,
-    total: total.value,
-    onChange: (page: number, pageSize: number) => {
-      searchParams.current = page
-      searchParams.pageSize = pageSize
-      fetchData()
-    },
-  }
-})
+const onPageChange = (page: number, pageSize: number) => {
+  searchParams.current = page
+  searchParams.pageSize = pageSize
+  fetchData()
+}
 
-// 获取图片数据
 const fetchData = async () => {
+  console.log('fetchData spaceId=', props.id)
   loading.value = true
   const params = {
     ...searchParams,
+    spaceId: props.id,
     tags: [],
   }
-  if (selectCategory.value !== 'all') {
-    params.category = selectCategory.value
-  }
-  selectTagList.value.forEach((useTag, index) => {
-    if (useTag) {
-      params.tags.push(tagList.value[index])
-    }
-  })
-
   const res = await listPictureVoByPageUsingPost(params)
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0
   } else {
-    message.error('获取数据失败' + res.data.data.message)
+    message.error('获取数据失败，' + res.data.message)
   }
   loading.value = false
 }
 
-// 搜索
-const doSearch = async () => {
-  // 重置搜索条件
-  searchParams.current = 1
-  fetchData()
-}
-
-const categoryList = ref<string[]>([])
-const selectCategory = ref<string>()
-const tagList = ref<string[]>([])
-const selectTagList = ref<boolean[]>([])
-
-// 获取标签和分类选项
-const getTagCategoryOptions = async () => {
-  const res = await listPictureTagCategoryUsingGet()
-  if (res.data.code === 0 && res.data.data) {
-    tagList.value = res.data.data.tagList
-    categoryList.value = res.data.data.categoryList
-  } else {
-    message.error('加载选项失败，' + res.data.message)
-  }
-}
-
-const router = useRouter()
-
-const doClickPicture = (picture: API.PictureVO) => {
-  router.push({
-    path: `/picture/${picture.id}`,
-  })
-}
-
 // 页面请求的时候加载一次
 onMounted(() => {
+  fetchSpaceDetail()
   fetchData()
-  getTagCategoryOptions()
 })
 </script>
 
 <style scoped>
-#homePage {
+#space-detail-page {
   margin-bottom: 16px;
 }
 
-#homePage .search-bar {
-  max-width: 480px;
-  margin: 0 auto 16px;
-}
-
-#homePage .tag-bar {
-  margin-bottom: 16px;
+.flagship-icon {
+  font-size: 24px;
+  line-height: 1;
 }
 </style>

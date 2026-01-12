@@ -3,13 +3,29 @@
     <h1 style="margin-bottom: 16px">
       {{ route.query?.id ? '修改图片' : '创建图片' }}
     </h1>
+    <a-space v-if="spaceId" size="middle">
+      <a-typography-paragraph type="secondary" style="margin: 0">
+        上传至空间：<a :href="`/space/${props.spaceId}`" target="_blank">{{ props.spaceId }}</a>
+      </a-typography-paragraph>
+      <a-tooltip placement="topRight">
+        <template #title
+          >目前占用空间：{{ formatSize(space.totalSize) }} /
+          {{ formatSize(space.maxSize) }}</template
+        >
+        <a-progress
+          type="circle"
+          :percent="((space.totalSize * 100) / space.maxSize).toFixed(2)"
+          :size="48"
+        />
+      </a-tooltip>
+    </a-space>
     <!-- 选择上传方式   -->
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
-        <PictureUpload :picture="picture" :onSuccess="onSuccess" />
+        <PictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="props.spaceId" />
       </a-tab-pane>
       <a-tab-pane key="url" tab="URL 上传" force-render>
-        <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" />
+        <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="props.spaceId" />
       </a-tab-pane>
     </a-tabs>
     <a-form
@@ -65,10 +81,18 @@ import {
 } from '@/api/pictureController.ts'
 import { useRoute, useRouter } from 'vue-router'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
+import { formatSize } from '@/utils'
+import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
+
+interface Props {
+  spaceId?: string
+}
+const props = defineProps<Props>()
 
 const router = useRouter()
 const picture = ref<API.PictureVO>()
 const uploadType = ref<'file' | 'url'>('file')
+const route = useRoute()
 
 /**
  * 图片上传成功
@@ -131,12 +155,7 @@ const getTagCategoryOptions = async () => {
   }
 }
 
-onMounted(() => {
-  getTagCategoryOptions()
-})
-
-const route = useRoute()
-
+// 获取旧的图片信息
 const getOldPicture = async () => {
   const pictureId = route.query?.id
   const res = await getPictureVoByIdUsingPost({
@@ -152,8 +171,25 @@ const getOldPicture = async () => {
   }
 }
 
+// 获取空间信息
+const space = ref<API.SpaceVO>({})
+
+const getOldSpace = async () => {
+  if (!props.spaceId) {
+    return
+  }
+  const res = await getSpaceVoByIdUsingPost({ id: props.spaceId })
+  if (res.data.code === 0 && res.data.data) {
+    space.value = res.data.data
+  } else {
+    message.error('获取空间信息失败，' + res.data.message)
+  }
+}
+
 onMounted(() => {
+  getTagCategoryOptions()
   getOldPicture()
+  getOldSpace()
 })
 </script>
 
