@@ -11,6 +11,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseListImageSearchResult_ = {
+    code?: number
+    data?: ImageSearchResult[]
+    message?: string
+  }
+
   type BaseResponseListSpaceLevel_ = {
     code?: number
     data?: SpaceLevel[]
@@ -130,6 +136,11 @@ declare namespace API {
     id?: number
   }
 
+  type ImageSearchResult = {
+    fromUrl?: string
+    thumbUrl?: string
+  }
+
   type LoginUserVO = {
     createTime?: string
     editTime?: string
@@ -218,7 +229,9 @@ declare namespace API {
   type PictureQueryRequest = {
     category?: string
     current?: number
+    endEditTime?: string
     id?: number
+    imgSize?: number
     introduction?: string
     name?: string
     nullSpaceId?: boolean
@@ -236,6 +249,7 @@ declare namespace API {
     sortField?: string
     sortOrder?: string
     spaceId?: number
+    startEditTime?: string
     tags?: string[]
     userId?: number
   }
@@ -296,6 +310,10 @@ declare namespace API {
     url?: string
     userId?: number
     userVO?: UserVO
+  }
+
+  type SearchPictureByPictureRequest = {
+    pictureId?: number
   }
 
   type Space = {

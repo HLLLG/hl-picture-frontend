@@ -62,7 +62,11 @@ const handleUpload = async ({ file }: any) => {
  * @param file
  */
 const beforeUpload = (file: UploadProps['fileList'][number]) => {
-  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+  const isJpgOrPng =
+    file.type === 'image/jpeg' ||
+    file.type === 'image/png' ||
+    file.type === 'image/webp' ||
+    file.type === 'image/png'
   if (!isJpgOrPng) {
     message.error('不支持上传该格式的图片，推荐jpg 或 png')
   }

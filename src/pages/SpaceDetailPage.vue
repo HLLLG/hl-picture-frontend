@@ -24,7 +24,9 @@
       </a-space>
     </a-flex>
     <div style="margin-bottom: 16px"></div>
-    <!-- 展示空间组件 -->
+    <!-- 图片搜索表单 -->
+    <PictureSearchForm :onSearch="onSearch" />
+    <!-- 展示图片组件 -->
     <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData" />
     <!-- 分页参数 -->
     <a-pagination
@@ -46,6 +48,7 @@ import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
 import { formatSize } from '@/utils'
 import { SPACE_LEVEL_ENUM } from '@/constants/Space.ts'
 import AddPicturePage from '@/pages/AddPicturePage.vue'
+import PictureSearchForm from '@/components/PictureSearchForm.vue'
 
 interface Props {
   id: string
@@ -83,7 +86,7 @@ const dataList = ref<API.PictureVO[]>([])
 const total = ref(0)
 const loading = ref(true)
 
-const searchParams = reactive<API.PictureQueryRequest>({
+const searchParams = ref<API.PictureQueryRequest>({
   current: 1,
   pageSize: 12,
   sortField: 'createTime',
@@ -91,8 +94,8 @@ const searchParams = reactive<API.PictureQueryRequest>({
 })
 
 const onPageChange = (page: number, pageSize: number) => {
-  searchParams.current = page
-  searchParams.pageSize = pageSize
+  searchParams.value.current = page
+  searchParams.value.pageSize = pageSize
   fetchData()
 }
 
@@ -100,9 +103,8 @@ const fetchData = async () => {
   console.log('fetchData spaceId=', props.id)
   loading.value = true
   const params = {
-    ...searchParams,
+    ...searchParams.value,
     spaceId: props.id,
-    tags: [],
   }
   const res = await listPictureVoByPageUsingPost(params)
   if (res.data.data) {
@@ -112,6 +114,17 @@ const fetchData = async () => {
     message.error('获取数据失败，' + res.data.message)
   }
   loading.value = false
+}
+
+// 搜索数据
+const onSearch = (newSearchParams: API.PictureQueryRequest) => {
+  // 合并搜索参数
+  searchParams.value = {
+    ...searchParams.value,
+    ...newSearchParams,
+    current: 1,
+  }
+  fetchData()
 }
 
 // 页面请求的时候加载一次
