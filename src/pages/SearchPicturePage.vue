@@ -37,7 +37,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { getPictureVoByIdUsingPost, searchImagesUsingPost } from '@/api/pictureController.ts'
+import {
+  getPictureVoByIdUsingPost,
+  searchPictureByPictureUsingPost,
+} from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import { useRoute } from 'vue-router'
 
@@ -55,7 +58,7 @@ const loading = ref(true)
 const fetchData = async () => {
   loading.value = true
   try {
-    const res = await searchImagesUsingPost({ pictureId: pictureId.value })
+    const res = await searchPictureByPictureUsingPost({ pictureId: pictureId.value })
     if (res.data.code === 0 && res.data.data) {
       dataList.value = res.data.data ?? []
     } else {

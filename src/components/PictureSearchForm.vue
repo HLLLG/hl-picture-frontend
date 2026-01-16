@@ -95,6 +95,7 @@ import { ImgFormatOptions } from '@/constants/ImgFormat.ts'
 interface Props {
   onSearch?: (searchParams: API.PictureQueryRequest) => void
 }
+
 const props = defineProps<Props>()
 
 const activeKey = ref<[]>([])
