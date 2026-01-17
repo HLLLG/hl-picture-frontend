@@ -13,9 +13,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, h, ref } from 'vue'
+import { computed, h, ref, watch } from 'vue'
 import { PictureOutlined, UserOutlined } from '@ant-design/icons-vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import type { MenuProps } from 'ant-design-vue'
 
@@ -35,31 +35,42 @@ const originMenu = [
 ]
 
 const router = useRouter()
+const route = useRoute()
+
+const getMenuKeyByPath = (path: string) => {
+  // MySpacePage 会重定向到 /space/:id，但侧边菜单仍高亮 /my_space
+  if (path.startsWith('/space/')) return '/my_space'
+  return path
+}
+
 const current = ref<string[]>([])
-// 路由钩子，监听路由变化，高亮菜单项
-router.afterEach((to, from, next) => {
-  current.value = [to.path]
-})
+// 监听路由变化，高亮菜单项
+watch(
+  () => route.path,
+  (path) => {
+    current.value = [getMenuKeyByPath(path)]
+  },
+  { immediate: true },
+)
 
 //路由跳转事件
-const doMenuClick = ({ key }) => {
+const doMenuClick: MenuProps['onClick'] = ({ key }) => {
   router.push({
-    path: key,
+    path: key as string,
   })
 }
 
 // 过滤菜单
-const filterMenu = (menus = [] as MenuProps['items']) => {
-  return menus?.filter((menu) => {
-    if (menu?.key?.startsWith('/admin')) {
+const filterMenu = (menus: MenuProps['items'] = []) =>
+  menus?.filter((menu) => {
+    const key = String(menu?.key ?? '')
+    if (key.startsWith('/admin')) {
       const loginUser = loginUserStore.loginUser
-      if (!loginUser || loginUser.userRole !== 'admin') {
-        return false
-      }
+      if (!loginUser || loginUser.userRole !== 'admin') return false
     }
     return true
   })
-}
+
 // 展示在菜单的路由数组
 const items = computed<MenuProps['items']>(() => filterMenu(originMenu))
 </script>

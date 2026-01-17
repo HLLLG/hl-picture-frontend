@@ -1,7 +1,7 @@
 <template>
   <div id="homePage">
+    <!-- 搜索框 -->
     <div class="search-bar">
-      <!-- 搜索框 -->
       <a-input-search
         v-model:value="searchParams.searchText"
         placeholder="从海量图片中搜索"
@@ -10,6 +10,14 @@
         @search="doSearch"
       />
     </div>
+    <!-- 颜色选择器 -->
+    <a-space class="color-row">
+      <a-form-item class="color-row__item" label="按颜色搜索">
+        <color-picker format="hex" v-model:pureColor="searchParams.picColor" />
+      </a-form-item>
+      <a-button html-type="reset" @click="doClear">重置</a-button>
+    </a-space>
+
     <!-- 分类和标签 -->
     <a-tabs v-model:activeKey="selectCategory" @change="doSearch">
       <a-tab-pane key="all" tab="全部"></a-tab-pane>
@@ -45,9 +53,11 @@ import { onMounted, reactive, ref } from 'vue'
 import {
   listPictureTagCategoryUsingGet,
   listPictureVoByPageUsingPost,
+  searchPictureByColorUsingPost,
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import PictureList from '@/components/PictureList.vue'
+import { ColorPicker } from 'vue3-colorpicker'
 
 // 图片数据列表
 const dataList = ref<API.PictureVO[]>([])
@@ -116,11 +126,28 @@ const getTagCategoryOptions = async () => {
     message.error('加载选项失败，' + res.data.message)
   }
 }
+
 // 页面请求的时候加载一次
 onMounted(() => {
   fetchData()
   getTagCategoryOptions()
 })
+
+// 重置搜索条件
+const doClear = () => {
+  // 取消所有对象的值
+  Object.keys(searchParams).forEach((key) => {
+    searchParams[key] = undefined
+  })
+  // 重置页码
+  searchParams.current = 1
+  searchParams.pageSize = 12
+  searchParams.sortField = 'createTime'
+  searchParams.sortOrder = 'descend'
+  selectCategory.value = 'all'
+  selectTagList.value = []
+  fetchData()
+}
 </script>
 
 <style scoped>
@@ -135,5 +162,16 @@ onMounted(() => {
 
 #homePage .tag-bar {
   margin-bottom: 16px;
+}
+
+.color-row {
+  display: flex;
+  align-items: center; /* 垂直居中对齐 */
+  justify-content: center; /* 水平居中（子项在这一行内居中） */
+}
+
+/* 消除 a-form-item 默认的 margin，避免把按钮挤到下一行 */
+.color-row__item {
+  margin-bottom: 0;
 }
 </style>

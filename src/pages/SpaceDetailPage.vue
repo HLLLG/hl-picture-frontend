@@ -8,7 +8,7 @@
       </a-space>
       <a-space size="middle">
         <a-button type="primary" @click="showModal">+ 创建图片</a-button>
-        <a-modal v-model:open="open" width="100%" destroyOnClose :footer="null">
+        <a-modal v-model:open="open" width="50%" destroyOnClose :footer="null">
           <AddPicturePage :spaceId="props.id" />
         </a-modal>
         <a-tooltip placement="topRight">
@@ -26,10 +26,6 @@
     <div style="margin-bottom: 16px"></div>
     <!-- 图片搜索表单 -->
     <PictureSearchForm :onSearch="onSearch" />
-    <!-- 颜色选择器 -->
-    <a-form-item label="按颜色搜索">
-      <color-picker format="hex" @pureColorChange="onColorChange" />
-    </a-form-item>
     <!-- 展示图片组件 -->
     <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData" />
     <!-- 分页参数 -->
@@ -108,7 +104,6 @@ const onPageChange = (page: number, pageSize: number) => {
 }
 
 const fetchData = async () => {
-  console.log('fetchData spaceId=', props.id)
   loading.value = true
   const params = {
     ...searchParams.value,
@@ -133,22 +128,6 @@ const onSearch = (newSearchParams: API.PictureQueryRequest) => {
     current: 1,
   }
   fetchData()
-}
-
-// 颜色搜索
-const onColorChange = async (color: String) => {
-  loading.value = true
-  const res = await searchPictureByColorUsingPost({
-    picColor: color,
-    spaceId: props.id,
-  })
-  if (res.data.code === 0 && res.data.data) {
-    dataList.value = res.data.data ?? []
-    total.value = res.data.data.length
-  } else {
-    message.error('获取数据失败，' + res.data.message)
-  }
-  loading.value = false
 }
 
 // 页面请求的时候加载一次

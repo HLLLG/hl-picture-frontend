@@ -243,6 +243,7 @@ declare namespace API {
     name?: string
     nullSpaceId?: boolean
     pageSize?: number
+    picColor?: string
     picFormat?: string
     picHeight?: number
     picScale?: number

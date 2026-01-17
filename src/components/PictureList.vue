@@ -15,7 +15,7 @@
                 :src="picture.thumbnailUrl ?? picture.url"
                 :alt="picture.name"
                 style="height: 180px; object-fit: cover"
-                @click="doClickPicture(picture)"
+                @click="showModal(picture.id)"
               />
             </template>
             <a-card-meta :title="picture.name">
@@ -31,9 +31,13 @@
               </template>
             </a-card-meta>
             <template v-if="showOp" #actions>
+              <a-space @click="(e) => doShare(e, picture)">
+                <ShareAltOutlined />
+                搜索
+              </a-space>
               <a-space @click="(e) => doSearch(e, picture)">
                 <SearchOutlined />
-                搜索
+                分享
               </a-space>
               <a-space @click="(e) => doEdit(e, picture)">
                 <EditOutlined />
@@ -48,14 +52,26 @@
         </a-list-item>
       </template>
     </a-list>
+    <a-modal v-model:open="open" width="80%" destroyOnClose :footer="null">
+      <PictureDetailPage v-if="currentPictureId" :id="currentPictureId" />
+    </a-modal>
+    <ShareModal ref="shareModalRef" :link="shareLink" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons-vue'
+import {
+  DeleteOutlined,
+  EditOutlined,
+  SearchOutlined,
+  ShareAltOutlined,
+} from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
+import { ref } from 'vue'
+import PictureDetailPage from '@/pages/PictureDetailPage.vue'
+import ShareModal from '@/components/ShareModal.vue'
 
 interface Props {
   dataList?: API.PictureVO[]
@@ -70,12 +86,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const router = useRouter()
-
-const doClickPicture = (picture: API.PictureVO) => {
-  router.push({
-    path: `/picture/${picture.id}`,
-  })
-}
 
 // 编辑图片
 const doEdit = (e: Event, picture: API.PictureVO) => {
@@ -114,6 +124,32 @@ const doSearch = (e: Event, picture: API.PictureVO) => {
   e.stopPropagation()
   // 打开新页面
   window.open(`/search_picture?pictureId=${picture.id}`)
+}
+
+//----------------- 图片详情弹窗 -----------------
+const open = ref<boolean>(false)
+const currentPictureId = ref<number>(0)
+const showModal = (id: number) => {
+  if (!id) {
+    return
+  }
+  open.value = true
+  currentPictureId.value = id
+}
+
+//----------------- 分享弹窗 -----------------
+const shareModalRef = ref()
+const shareLink = ref<string>('')
+const doShare = (e: Event, picture: API.PictureVO) => {
+  // 阻止事件冒泡
+  e.stopPropagation()
+  // 生成分享链接
+  const link = `${window.location.protocol}//${window.location.host}/picture/${picture.id}`
+  shareLink.value = link
+  // 打开分享弹窗
+  if (shareModalRef.value) {
+    shareModalRef.value.openModal()
+  }
 }
 </script>
 

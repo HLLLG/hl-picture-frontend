@@ -71,6 +71,10 @@
                 allow-clear
               ></a-auto-complete>
             </a-form-item>
+            <!-- 颜色选择器 -->
+            <a-form-item label="按颜色搜索">
+              <color-picker format="hex" v-model:pureColor="searchParams.picColor" />
+            </a-form-item>
           </div>
         </a-collapse-panel>
       </a-collapse>
@@ -91,6 +95,7 @@ import { listPictureTagCategoryUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import { IMG_SIZE_OPTIONS } from '@/constants/ImgSize.ts'
 import { ImgFormatOptions } from '@/constants/ImgFormat.ts'
+import { ColorPicker } from 'vue3-colorpicker'
 
 interface Props {
   onSearch?: (searchParams: API.PictureQueryRequest) => void

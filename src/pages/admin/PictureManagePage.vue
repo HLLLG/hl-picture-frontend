@@ -23,17 +23,24 @@
           allow-clear
         />
       </a-form-item>
-      <a-form-item label="类型">
-        <a-input v-model:value="searchParams.category" placeholder="请输入类型" allow-clear />
-      </a-form-item>
-      <a-form-item label="标签">
-        <a-select
-          mode="tags"
-          v-model:value="searchParams.tags"
-          placeholder="请输入标签"
+      <a-form-item label="分类" name="category">
+        <a-auto-complete
+          v-model:value="searchParams.category"
+          placeholder="请输入分类"
+          :options="categoryOptions"
           style="min-width: 180px"
           allow-clear
-        />
+        ></a-auto-complete>
+      </a-form-item>
+      <a-form-item label="标签" name="tags">
+        <a-select
+          v-model:value="searchParams.tags"
+          mode="tags"
+          placeholder="请输入标签"
+          :options="tagOptions"
+          style="min-width: 180px"
+          allow-clear
+        ></a-select>
       </a-form-item>
       <a-form-item name="reviewStatus" label="审核状态">
         <a-select
@@ -44,8 +51,15 @@
           allow-clear
         />
       </a-form-item>
+      <!-- 颜色选择器 -->
+      <a-form-item label="按颜色搜索">
+        <color-picker format="hex" v-model:pureColor="searchParams.picColor" />
+      </a-form-item>
       <a-form-item>
-        <a-button type="primary" html-type="submit">搜索</a-button>
+        <a-space>
+          <a-button type="primary" html-type="submit">搜索</a-button>
+          <a-button html-type="reset" @click="doClear">重置</a-button>
+        </a-space>
       </a-form-item>
     </a-form>
     <div style="margin-bottom: 16px"></div>
@@ -129,13 +143,13 @@
 </template>
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { deleteUserUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import {
   deletePictureUsingPost,
   doPictureReviewUsingPost,
   listPictureByPageUsingPost,
+  listPictureTagCategoryUsingGet,
 } from '@/api/pictureController.ts'
 import {
   PIC_REVIEW_STATUS_ENUM,
@@ -143,6 +157,7 @@ import {
   PIC_REVIEW_STATUS_OPTIONS,
 } from '@/constants/Picture.ts'
 import AddPicturePage from '@/pages/AddPicturePage.vue'
+import { ColorPicker } from 'vue3-colorpicker'
 
 const columns = [
   {
@@ -325,6 +340,47 @@ const createModalOpen = ref<boolean>(false)
 
 const showModal = () => {
   createModalOpen.value = true
+}
+
+const categoryOptions = ref<string[]>([])
+const tagOptions = ref<string[]>([])
+// 获取标签和分类选项
+const getTagCategoryOptions = async () => {
+  const res = await listPictureTagCategoryUsingGet()
+  if (res.data.code === 0 && res.data.data) {
+    // 转换成下拉选项组件接受的格式
+    tagOptions.value = (res.data.data.tagList ?? []).map((data: string) => {
+      return {
+        value: data,
+        label: data,
+      }
+    })
+    categoryOptions.value = (res.data.data.categoryList ?? []).map((data: string) => {
+      return {
+        value: data,
+        label: data,
+      }
+    })
+  } else {
+    message.error('加载选项失败，' + res.data.message)
+  }
+}
+onMounted(() => {
+  getTagCategoryOptions()
+})
+
+// 重置搜索条件
+const doClear = () => {
+  // 取消所有对象的值
+  Object.keys(searchParams).forEach((key) => {
+    searchParams[key] = undefined
+  })
+  // 重置页码
+  searchParams.current = 1
+  searchParams.pageSize = 10
+  searchParams.sortField = 'createTime'
+  searchParams.sortOrder = 'descend'
+  fetchData()
 }
 </script>
 
