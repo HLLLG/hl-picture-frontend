@@ -63,8 +63,23 @@
       </a-form-item>
     </a-form>
     <div style="margin-bottom: 16px"></div>
+    <!-- 多选操作 -->
+    <a-button type="primary" :disabled="!hasSelected" @click="doBatchEdit"> 批量编辑 </a-button>
+    <span style="margin-left: 8px">
+      <template v-if="hasSelected">
+        {{ `已选中 ${state.selectedRowKeys.length} 条` }}
+      </template>
+    </span>
+    <!-- 批量编辑模块 -->
+    <BatchEditPictureModal
+      ref="batchEditPictureModalRef"
+      :pictureList="selectedPictureVOList"
+      :onSuccess="onBatchEditPictureSuccess"
+    />
     <!-- 表格 -->
     <a-table
+      :row-key="(record: API.Picture) => record.id as number"
+      :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
       :columns="columns"
       :data-source="dataList"
       :pagination="pagination"
@@ -158,6 +173,7 @@ import {
 } from '@/constants/Picture.ts'
 import AddPicturePage from '@/pages/AddPicturePage.vue'
 import { ColorPicker } from 'vue3-colorpicker'
+import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
 
 const columns = [
   {
@@ -380,6 +396,49 @@ const doClear = () => {
   searchParams.pageSize = 10
   searchParams.sortField = 'createTime'
   searchParams.sortOrder = 'descend'
+  fetchData()
+}
+
+// -------------------多选相关------------------------
+const state = reactive<{
+  selectedRowKeys: number[]
+  selectedPictures: API.Picture[]
+}>({
+  selectedRowKeys: [],
+  selectedPictures: [],
+})
+
+const hasSelected = computed(() => state.selectedRowKeys.length > 0)
+
+/**
+ * rowSelection.onChange 签名是：
+ * (selectedRowKeys, selectedRows) => void
+ * 这里第二个参数 selectedRows 是整行 picture
+ */
+const onSelectChange = (selectedRowKeys: number[], selectedRows: API.Picture[]) => {
+  state.selectedRowKeys = selectedRowKeys
+  state.selectedPictures = selectedRows
+}
+
+// 将 API.Picture[] 转为 API.PictureVO[]
+const selectedPictureVOList = computed<API.PictureVO[]>(() => {
+  return state.selectedPictures.map((picture) => ({
+    ...picture,
+  })) as API.PictureVO[]
+})
+
+// ---------------------批量编辑图片---------------------------
+const batchEditPictureModalRef = ref()
+const doBatchEdit = () => {
+  if (batchEditPictureModalRef.value) {
+    batchEditPictureModalRef.value.openModal()
+  }
+}
+// 批量编辑成功回调
+const onBatchEditPictureSuccess = () => {
+  // 清空选择
+  state.selectedRowKeys = []
+  state.selectedPictures = []
   fetchData()
 }
 </script>

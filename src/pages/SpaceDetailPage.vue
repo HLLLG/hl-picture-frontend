@@ -26,8 +26,22 @@
     <div style="margin-bottom: 16px"></div>
     <!-- 图片搜索表单 -->
     <PictureSearchForm :onSearch="onSearch" />
-    <!-- 展示图片组件 -->
-    <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData" />
+    <a-tabs v-model:activeKey="showType">
+      <a-tab-pane key="list" tab="列表">
+        <!-- 展示图片组件 -->
+        <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData" />
+      </a-tab-pane>
+      <a-tab-pane key="table" tab="表格" force-render>
+        <!-- 展示图片表格组件 -->
+        <PictureTable
+          :dataList="dataList"
+          :loading="loading"
+          :showOp="true"
+          :onReload="fetchData"
+          :spaceId="props.id"
+        />
+      </a-tab-pane>
+    </a-tabs>
     <!-- 分页参数 -->
     <a-pagination
       style="text-align: right"
@@ -39,11 +53,8 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
-import {
-  listPictureVoByPageUsingPost,
-  searchPictureByColorUsingPost,
-} from '@/api/pictureController.ts'
+import { h, onMounted, ref } from 'vue'
+import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import PictureList from '@/components/PictureList.vue'
 import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
@@ -51,13 +62,17 @@ import { formatSize } from '@/utils'
 import { SPACE_LEVEL_ENUM } from '@/constants/Space.ts'
 import AddPicturePage from '@/pages/AddPicturePage.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
-import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
+import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
+import { EditOutlined } from '@ant-design/icons-vue'
+import PictureTable from '@/components/PictureTable.vue'
 
 interface Props {
-  id: string
+  id: number
 }
 const props = defineProps<Props>()
+
+const showType = ref<string>('list')
 
 const open = ref<boolean>(false)
 

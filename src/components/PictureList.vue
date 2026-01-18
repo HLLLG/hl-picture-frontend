@@ -1,5 +1,5 @@
 <template>
-  <div id="homePage">
+  <div class="picture-list">
     <!-- 图片列表 -->
     <a-list
       :grid="{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 5, xxl: 6 }"
@@ -33,11 +33,11 @@
             <template v-if="showOp" #actions>
               <a-space @click="(e) => doShare(e, picture)">
                 <ShareAltOutlined />
-                搜索
+                分享
               </a-space>
               <a-space @click="(e) => doSearch(e, picture)">
                 <SearchOutlined />
-                分享
+                搜索
               </a-space>
               <a-space @click="(e) => doEdit(e, picture)">
                 <EditOutlined />
@@ -78,6 +78,7 @@ interface Props {
   loading?: boolean
   showOp?: boolean
   onReload?: () => void
+  spaceId?: number
 }
 const props = withDefaults(defineProps<Props>(), {
   dataList: () => [],

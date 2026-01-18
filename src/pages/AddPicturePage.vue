@@ -28,6 +28,7 @@
         <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="props.spaceId" />
       </a-tab-pane>
     </a-tabs>
+    <!-- 图片信息表单 -->
     <a-form
       v-if="picture"
       name="pictureForm"
@@ -64,7 +65,7 @@
         ></a-select>
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" html-type="submit" style="width: 100%">创建</a-button>
+        <a-button type="primary" html-type="submit" style="width: 100%">提交</a-button>
       </a-form-item>
     </a-form>
   </div>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-modal v-model:open="open" :title="title" @cancel="closeModal">
+    <a-modal v-model:open="open" :title="title" :footer="null" @cancel="closeModal">
       <h4>复制分享链接</h4>
       <a-typography-link copyable>
         {{ link }}
