@@ -15,7 +15,7 @@
                 :src="picture.thumbnailUrl ?? picture.url"
                 :alt="picture.name"
                 style="height: 180px; object-fit: cover"
-                @click="showModal(picture.id)"
+                @click="showDetail(picture.id)"
               />
             </template>
             <a-card-meta :title="picture.name">
@@ -52,9 +52,13 @@
         </a-list-item>
       </template>
     </a-list>
-    <a-modal v-model:open="open" width="80%" destroyOnClose :footer="null">
-      <PictureDetailPage v-if="currentPictureId" :id="currentPictureId" />
-    </a-modal>
+    <!-- 图片详情弹窗 -->
+    <PictureDetailModal
+      ref="pictureDetailRef"
+      :currentPictureId="currentPictureId"
+      :onSuccess="onReload"
+    />
+    <!-- 分享弹窗 -->
     <ShareModal ref="shareModalRef" :link="shareLink" />
   </div>
 </template>
@@ -70,8 +74,8 @@ import {
 import { message } from 'ant-design-vue'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
 import { ref } from 'vue'
-import PictureDetailPage from '@/pages/PictureDetailPage.vue'
 import ShareModal from '@/components/ShareModal.vue'
+import PictureDetailModal from '@/components/PictureDetailModal.vue'
 
 interface Props {
   dataList?: API.PictureVO[]
@@ -128,14 +132,22 @@ const doSearch = (e: Event, picture: API.PictureVO) => {
 }
 
 //----------------- 图片详情弹窗 -----------------
-const open = ref<boolean>(false)
-const currentPictureId = ref<number>(0)
-const showModal = (id: number) => {
+const pictureDetailRef = ref()
+const currentPictureId = ref<number>()
+const showDetail = (id: number) => {
   if (!id) {
     return
   }
-  open.value = true
+  if (pictureDetailRef.value) {
+    pictureDetailRef.value.openModal()
+  }
   currentPictureId.value = id
+}
+const onReload = () => {
+  if (pictureDetailRef.value) {
+    pictureDetailRef.value.closeModal()
+  }
+  props.onReload?.()
 }
 
 //----------------- 分享弹窗 -----------------

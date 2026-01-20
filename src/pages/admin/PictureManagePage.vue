@@ -443,4 +443,8 @@ const onBatchEditPictureSuccess = () => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+#pictureManagePage :deep(.ant-form-item) {
+  margin-bottom: 8px;
+}
+</style>

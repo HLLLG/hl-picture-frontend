@@ -37,7 +37,7 @@
       </a-space>
     </div>
     <!-- 展示图片组件 -->
-    <PictureList :dataList="dataList" :loading="loading" />
+    <PictureList :dataList="dataList" :loading="loading" :onReload="fetchData" />
     <a-pagination
       style="text-align: right"
       v-model:current="searchParams.current"

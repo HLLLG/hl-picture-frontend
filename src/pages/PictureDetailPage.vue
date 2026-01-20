@@ -74,15 +74,6 @@
             <a-button v-if="canEdit" :icon="h(EditOutlined)" type="default" @click="doEdit"
               >编辑</a-button
             >
-            <a-popconfirm
-              title="是否删除"
-              ok-text="是"
-              cancel-text="否"
-              @confirm="confirm"
-              @cancel="cancel"
-            >
-              <a-button :icon="h(DeleteOutlined)" danger>删除</a-button>
-            </a-popconfirm>
             <a-button v-if="idAdmin" :icon="h(CloseOutlined)" @click="showRejectModal" danger
               >拒绝</a-button
             >
@@ -96,6 +87,15 @@
                 placeholder="请输入拒绝原因，默认管理员操作拒绝"
               ></a-input>
             </a-modal>
+            <a-popconfirm
+              title="是否删除"
+              ok-text="是"
+              cancel-text="否"
+              @confirm="confirm"
+              @cancel="cancel"
+            >
+              <a-button :icon="h(DeleteOutlined)" danger>删除</a-button>
+            </a-popconfirm>
           </a-space>
         </a-card>
       </a-col>
@@ -126,7 +126,8 @@ import { PIC_REVIEW_STATUS_ENUM } from '@/constants/Picture.ts'
 import ShareModal from '@/components/ShareModal.vue'
 
 interface Props {
-  id: number
+  id?: number
+  onSuccess?: () => void
 }
 const props = defineProps<Props>()
 
@@ -158,7 +159,7 @@ const doDelete = async () => {
   if (res.data.code === 0) {
     message.success('删除成功')
     // 刷新数据
-    fetchPictureDetail
+    props.onSuccess?.()
   } else {
     message.error('删除失败，' + res.data.message)
   }
