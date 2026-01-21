@@ -1,5 +1,6 @@
 <template>
   <div id="addPicturePage">
+    <ImageCropper image-url="https://avatars2.githubusercontent.com/u/15681693?s=460&v=4" />
     <h1 style="margin-bottom: 16px">
       {{ route.query?.id ? '修改图片' : '创建图片' }}
     </h1>
@@ -84,6 +85,7 @@ import { useRoute, useRouter } from 'vue-router'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import { formatSize } from '@/utils'
 import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
+import ImageCropper from '@/components/ImageCropper.vue'
 
 interface Props {
   spaceId?: string
