@@ -1,9 +1,11 @@
 <template>
   <div id="addPicturePage">
-    <ImageCropper image-url="https://avatars2.githubusercontent.com/u/15681693?s=460&v=4" />
-    <h1 style="margin-bottom: 16px">
-      {{ route.query?.id ? '修改图片' : '创建图片' }}
-    </h1>
+    <a-space>
+      <h1 class="title-bar">
+        {{ route.query?.id ? '修改图片' : '创建图片' }}
+      </h1>
+      <a-button :icon="h(RollbackOutlined)" @click="doRollBack">返回</a-button>
+    </a-space>
     <a-space v-if="spaceId" size="middle">
       <a-typography-paragraph type="secondary" style="margin: 0">
         上传至空间：<a :href="`/space/${props.spaceId}`" target="_blank">{{ props.spaceId }}</a>
@@ -29,6 +31,20 @@
         <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="props.spaceId" />
       </a-tab-pane>
     </a-tabs>
+    <div class="crop-bar">
+      <a-button :icon="h(EditOutlined)" @click="doCropPicture" v-if="picture" style="margin: 8px 0"
+        >裁剪图片</a-button
+      >
+    </div>
+
+    <!-- 图片裁剪组件 -->
+    <ImageCropper
+      ref="imageCropperRef"
+      :imageUrl="picture?.url"
+      :picture="picture"
+      :spaceId="spaceId"
+      :onSuccess="onCropSuccess"
+    />
     <!-- 图片信息表单 -->
     <a-form
       v-if="picture"
@@ -74,7 +90,7 @@
 
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
-import { onMounted, reactive, ref } from 'vue'
+import { h, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   editPictureUsingPost,
@@ -86,9 +102,10 @@ import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import { formatSize } from '@/utils'
 import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
 import ImageCropper from '@/components/ImageCropper.vue'
+import { EditOutlined, RollbackOutlined } from '@ant-design/icons-vue'
 
 interface Props {
-  spaceId?: string
+  spaceId?: number
 }
 const props = defineProps<Props>()
 
@@ -194,11 +211,47 @@ onMounted(() => {
   getOldPicture()
   getOldSpace()
 })
+
+// 返回上个页面
+const doRollBack = () => {
+  router.back()
+}
+
+// ------------------- 图片裁剪相关 -------------------
+const imageCropperRef = ref()
+/**
+ * 打开图片裁剪组件
+ */
+const doCropPicture = () => {
+  if (!picture.value) {
+    message.warning('请先上传图片')
+    return
+  }
+  imageCropperRef.value?.openModal()
+}
+/**
+ * 图片裁剪上传成功
+ * @param newPicture
+ */
+const onCropSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
 </script>
 
 <style scoped>
 #addPicturePage {
   max-width: 720px;
   margin: 0 auto;
+}
+
+#addPicturePage .crop-bar {
+  text-align: center;
+}
+
+.title-bar {
+  display: flex;
+  align-items: center; /* 垂直居中，从而“水平一行对齐” */
+  gap: 12px; /* 间距可按需调整 */
+  margin-bottom: 3px;
 }
 </style>
