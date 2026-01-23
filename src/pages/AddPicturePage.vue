@@ -6,6 +6,7 @@
       </h1>
       <a-button :icon="h(RollbackOutlined)" @click="doRollBack">返回</a-button>
     </a-space>
+    <!-- 空间信息和使用进度 -->
     <a-space v-if="spaceId" size="middle">
       <a-typography-paragraph type="secondary" style="margin: 0">
         上传至空间：<a :href="`/space/${props.spaceId}`" target="_blank">{{ props.spaceId }}</a>
@@ -31,20 +32,43 @@
         <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="props.spaceId" />
       </a-tab-pane>
     </a-tabs>
-    <div class="crop-bar">
-      <a-button :icon="h(EditOutlined)" @click="doCropPicture" v-if="picture" style="margin: 8px 0"
-        >裁剪图片</a-button
-      >
-    </div>
+    <!-- 图片编辑功能栏 -->
+    <div class="edit-bar">
+      <a-space size="middle">
+        <a-button
+          :icon="h(EditOutlined)"
+          @click="doCropPicture"
+          v-if="picture"
+          style="margin: 8px 0"
+          >裁剪图片</a-button
+        >
+        <a-button
+          type="primary"
+          ghost
+          :icon="h(FullscreenOutlined)"
+          @click="doImagePainting"
+          v-if="picture"
+          style="margin: 8px 0"
+          >AI 扩图</a-button
+        >
+      </a-space>
 
-    <!-- 图片裁剪组件 -->
-    <ImageCropper
-      ref="imageCropperRef"
-      :imageUrl="picture?.url"
-      :picture="picture"
-      :spaceId="spaceId"
-      :onSuccess="onCropSuccess"
-    />
+      <!-- 图片裁剪组件 -->
+      <ImageCropper
+        ref="imageCropperRef"
+        :imageUrl="picture?.url"
+        :picture="picture"
+        :spaceId="spaceId"
+        :onSuccess="onCropSuccess"
+      />
+      <!-- AI 扩图组件 -->
+      <ImageOutPainting
+        ref="imageOutPaintingRef"
+        :picture="picture"
+        :spaceId="spaceId"
+        :onSuccess="onOutPaintingSuccess"
+      />
+    </div>
     <!-- 图片信息表单 -->
     <a-form
       v-if="picture"
@@ -102,7 +126,8 @@ import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import { formatSize } from '@/utils'
 import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
 import ImageCropper from '@/components/ImageCropper.vue'
-import { EditOutlined, RollbackOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, FullscreenOutlined, RollbackOutlined } from '@ant-design/icons-vue'
+import ImageOutPainting from '@/components/ImageOutPainting.vue'
 
 interface Props {
   spaceId?: number
@@ -236,6 +261,26 @@ const doCropPicture = () => {
 const onCropSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
 }
+
+// ------------------- AI 扩图相关 -------------------
+const imageOutPaintingRef = ref()
+/**
+ * 打开图片裁剪组件
+ */
+const doImagePainting = () => {
+  if (!picture.value) {
+    message.warning('请先上传图片')
+    return
+  }
+  imageOutPaintingRef.value?.openModal()
+}
+/**
+ * 图片裁剪上传成功
+ * @param newPicture
+ */
+const onOutPaintingSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
 </script>
 
 <style scoped>
@@ -243,8 +288,7 @@ const onCropSuccess = (newPicture: API.PictureVO) => {
   max-width: 720px;
   margin: 0 auto;
 }
-
-#addPicturePage .crop-bar {
+.edit-bar {
   text-align: center;
 }
 
