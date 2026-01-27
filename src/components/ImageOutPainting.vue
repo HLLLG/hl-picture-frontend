@@ -5,6 +5,7 @@
     title="AI 扩图"
     :footer="null"
     @cancel="closeModal"
+    style="width: 1024px; height: 1024px"
   >
     <a-row :gutter="16">
       <a-col :span="12">
@@ -23,9 +24,11 @@
     </a-row>
     <div style="margin-bottom: 8px"></div>
     <!-- 操作按钮 -->
-    <a-space>
-      <a-button type="primary" ghost @click="createTask">生成图片</a-button>
-      <a-button type="primary" @click="handleUpload">应用结果</a-button>
+    <a-space size="middle">
+      <a-button :loading="!!taskId" type="primary" ghost @click="createTask">生成图片</a-button>
+      <a-button :loading="loading" v-if="resultImageUrl" type="primary" @click="handleUpload"
+        >应用结果</a-button
+      >
     </a-space>
   </a-modal>
 </template>

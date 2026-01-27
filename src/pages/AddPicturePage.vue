@@ -1,10 +1,10 @@
 <template>
   <div id="addPicturePage">
     <a-space>
-      <h1 class="title-bar">
+      <a-button type="text" :icon="h(ArrowLeftOutlined)" @click="doRollBack"></a-button>
+      <h2 class="title-bar">
         {{ route.query?.id ? '修改图片' : '创建图片' }}
-      </h1>
-      <a-button :icon="h(RollbackOutlined)" @click="doRollBack">返回</a-button>
+      </h2>
     </a-space>
     <!-- 空间信息和使用进度 -->
     <a-space v-if="spaceId" size="middle">
@@ -126,7 +126,12 @@ import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import { formatSize } from '@/utils'
 import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
 import ImageCropper from '@/components/ImageCropper.vue'
-import { EditOutlined, FullscreenOutlined, RollbackOutlined } from '@ant-design/icons-vue'
+import {
+  ArrowLeftOutlined,
+  EditOutlined,
+  FullscreenOutlined,
+  RollbackOutlined,
+} from '@ant-design/icons-vue'
 import ImageOutPainting from '@/components/ImageOutPainting.vue'
 
 interface Props {
