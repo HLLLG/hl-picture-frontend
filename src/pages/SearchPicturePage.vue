@@ -53,7 +53,7 @@ const pictureId = computed(() => {
 // 图片数据列表
 const dataList = ref<API.ImageSearchResult[]>([])
 
-const loading = ref(true)
+const loading = ref(false)
 
 const fetchData = async () => {
   loading.value = true

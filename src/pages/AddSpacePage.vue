@@ -24,6 +24,7 @@
             (value: string) => {
               const num = parseFloat(value.replace(/[^0-9.]/g, ''))
               if (isNaN(num)) return 0
+              if (value.includes('GB')) return Math.round(num * 1024 * 1024 * 1024)
               if (value.includes('MB')) return Math.round(num * 1024 * 1024)
               if (value.includes('KB')) return Math.round(num * 1024)
               return Math.round(num)

@@ -11,6 +11,13 @@
         <a-modal v-model:open="open" width="50%" destroyOnClose :footer="null">
           <AddPicturePage :spaceId="props.id" />
         </a-modal>
+        <a-button
+          type="primary"
+          :icon="h(BarChartOutlined)"
+          :href="`/space_analyze?spaceId=${props.id}`"
+          ghost
+          >空间分析</a-button
+        >
         <a-tooltip placement="topRight">
           <template #title
             >占用空间：{{ formatSize(space.totalSize) }} / {{ formatSize(space.maxSize) }}</template
@@ -64,7 +71,7 @@ import AddPicturePage from '@/pages/AddPicturePage.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import 'vue3-colorpicker/style.css'
 import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
-import { EditOutlined } from '@ant-design/icons-vue'
+import { BarChartOutlined, BarsOutlined, EditOutlined } from '@ant-design/icons-vue'
 import PictureTable from '@/components/PictureTable.vue'
 
 interface Props {
