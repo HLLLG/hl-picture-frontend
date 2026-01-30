@@ -44,7 +44,7 @@
           <a-tag>{{ SPACE_LEVEL_MAP[record.spaceLevel] }}</a-tag>
         </template>
         <template v-else-if="column.dataIndex === 'spaceUseInfo'">
-          <div>大小：{{ record.totalSize }} / {{ formatSize(record.maxSize) }}</div>
+          <div>大小：{{ formatSize(record.totalSize) }} / {{ formatSize(record.maxSize) }}</div>
           <div>数量：{{ record.totalCount }} / {{ record.maxCount }}</div>
         </template>
         <template v-else-if="column.dataIndex === 'createTime'">

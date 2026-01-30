@@ -56,7 +56,7 @@
       </a-typography-paragraph>
       <a-typography-paragraph v-for="spaceLevel in spaceLevelList">
         {{ spaceLevel.text }}: 大小 {{ formatSize(spaceLevel.maxSize) }}， 数量
-        {{ formatSize(spaceLevel.maxCount) }}
+        {{ spaceLevel.maxCount }}
       </a-typography-paragraph>
     </a-card>
   </div>
@@ -108,7 +108,7 @@ const handleSubmit = async (values: any) => {
     message.success('操作成功')
     // 跳转到空间详情页
     router.push({
-      path: `/space/${res.data.data}`,
+      path: `/space/${spaceId ?? res.data.data}`,
     })
   } else {
     message.error('操作失败，' + res.data.message)
