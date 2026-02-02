@@ -10,6 +10,7 @@ import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { useRouter } from 'vue-router'
 import { listSpaceVoByPageUsingPost } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
+import { SPACE_TYPE_ENUM } from '@/constants/Space.ts'
 
 const loginUserStore = useLoginUserStore()
 const router = useRouter()
@@ -27,6 +28,7 @@ const checkUserSpace = async () => {
       current: 1,
       pageSize: 1,
       userId: loginUser.id,
+      spaceType: SPACE_TYPE_ENUM.PRIVATE,
     })
     if (res.data.code === 0 && res.data.data) {
       if (res.data.data?.records?.length > 0) {

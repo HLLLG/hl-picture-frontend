@@ -71,7 +71,7 @@
               <ShareAltOutlined />
               分享
             </a-button>
-            <a-button v-if="canEdit" :icon="h(EditOutlined)" type="default" @click="doEdit"
+            <a-button v-if="canEditPicture" :icon="h(EditOutlined)" type="default" @click="doEdit"
               >编辑</a-button
             >
             <a-button v-if="idAdmin" :icon="h(CloseOutlined)" @click="showRejectModal" danger
@@ -94,7 +94,7 @@
               @confirm="confirm"
               @cancel="cancel"
             >
-              <a-button :icon="h(DeleteOutlined)" danger>删除</a-button>
+              <a-button v-if="canDeletePicture" :icon="h(DeleteOutlined)" danger>删除</a-button>
             </a-popconfirm>
           </a-space>
         </a-card>
@@ -124,6 +124,7 @@ import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { useRouter } from 'vue-router'
 import { PIC_REVIEW_STATUS_ENUM } from '@/constants/Picture.ts'
 import ShareModal from '@/components/ShareModal.vue'
+import { SPACE_PERMISSION_ENUM } from '@/constants/Space.ts'
 
 interface Props {
   id?: number
@@ -175,16 +176,6 @@ const cancel = (e: MouseEvent) => {
 
 const loginUserStore = useLoginUserStore()
 
-// 判断用户是否有权限编辑和删除
-const canEdit = computed(() => {
-  const loginUser = loginUserStore.loginUser
-  // 未登录不可编辑
-  if (!loginUser) {
-    return false
-  }
-  // 仅本人或管理员可编辑
-  return loginUser.id === picture.value.userVO?.id || loginUser.userRole === 'admin'
-})
 // 判断用户是否是管理员
 const idAdmin = computed(() => {
   const loginUser = loginUserStore.loginUser
@@ -261,6 +252,17 @@ const doShare = () => {
     shareModalRef.value.openModal()
   }
 }
+
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (picture.value.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canEditPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDeletePicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
 </script>
 
 <style scoped>

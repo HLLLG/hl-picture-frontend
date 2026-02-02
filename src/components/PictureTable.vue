@@ -1,7 +1,9 @@
 <template>
   <div class="picture-table">
     <!-- 多选操作 -->
-    <a-button type="primary" :disabled="!hasSelected" @click="doBatchEdit"> 批量编辑 </a-button>
+    <a-button v-if="canEdit" type="primary" :disabled="!hasSelected" @click="doBatchEdit">
+      批量编辑
+    </a-button>
     <span style="margin-left: 8px">
       <template v-if="hasSelected">
         {{ `已选中 ${state.selectedRowKeys.length} 条` }}
@@ -47,7 +49,7 @@
         </template>
         <template v-else-if="column.key === 'action'">
           <a-space wrap>
-            <a-button :icon="h(EditOutlined)" @click="doEdit(record)" target="_blank"
+            <a-button v-if="canEdit" :icon="h(EditOutlined)" @click="doEdit(record)" target="_blank"
               >编辑</a-button
             >
             <a-popconfirm
@@ -57,7 +59,7 @@
               @confirm="confirm(record)"
               @cancel="cancel"
             >
-              <a-button :icon="h(DeleteOutlined)" danger>删除</a-button>
+              <a-button v-if="canDelete" :icon="h(DeleteOutlined)" danger>删除</a-button>
             </a-popconfirm>
           </a-space>
         </template>
@@ -81,11 +83,15 @@ interface Props {
   showOp?: boolean
   onReload?: () => void
   spaceId?: number
+  canEdit?: boolean
+  canDelete?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   dataList: () => [],
   loading: false,
   showOp: false,
+  canDelete: false,
+  canEdit: false,
 })
 
 const router = useRouter()

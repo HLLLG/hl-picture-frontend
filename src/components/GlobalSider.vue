@@ -48,6 +48,7 @@ const fetchTeamSpacesList = async () => {
   const res = await listMyTeamSpaceUsingPost()
   if (res.data.code === 0 && res.data.data) {
     teamSpaceList.value = res.data.data
+    console.log('拿到结果了：' + teamSpaceList.value.length)
   } else {
     message.error('加载我的团队空间失败，' + res.data.message)
   }
@@ -87,16 +88,20 @@ const router = useRouter()
 const route = useRoute()
 
 const getMenuKeyByPath = (fullPath: string) => {
+  console.log('fullPath = ' + fullPath)
   // 提取路径部分（不含查询参数）
   const path = fullPath.split('?')[0]
 
   // 检查是否为空间路径
   if (path.startsWith('/space/')) {
     const spaceId = path.split('/')[2]
+    console.log('spaceId = ' + spaceId)
     // 如果在团队空间列表中，返回团队空间的 key（不带查询参数）
+    console.log('teamSpaceList = ' + teamSpaceList.value.length)
     const isTeamSpace = teamSpaceList.value.some(
       (spaceUser) => String(spaceUser.spaceId) === spaceId,
     )
+    console.log('isTeamSpace = ' + isTeamSpace)
     if (isTeamSpace) return `/space/${spaceId}`
     // 否则是私有空间，高亮 /my_space
     return '/my_space'
@@ -115,7 +120,9 @@ const current = ref<string[]>([])
 watch(
   () => route.fullPath,
   (fullPath) => {
+    fetchTeamSpacesList()
     current.value = [getMenuKeyByPath(fullPath)]
+    console.log('current = ' + current.value)
   },
   { immediate: true },
 )

@@ -37,7 +37,7 @@ export const SPACE_TYPE_ENUM = {
 /**
  * 空间类型文案映射
  */
-export const SPACE_TYPE_MAP = {
+export const SPACE_TYPE_MAP: Record<number, string> = {
   0: '私人空间',
   1: '团队空间',
 }
@@ -45,7 +45,7 @@ export const SPACE_TYPE_MAP = {
 /**
  * 空间类型下拉表单选项
  */
-export const SPACE_TYPE_OPTIONS = Object.entries(SPACE_TYPE_ENUM).map(([key, label]) => ({
+export const SPACE_TYPE_OPTIONS = Object.entries(SPACE_TYPE_MAP).map(([key, label]) => ({
   value: Number(key),
   label: label,
 }))

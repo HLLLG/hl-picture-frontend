@@ -39,11 +39,11 @@
                 <SearchOutlined />
                 搜索
               </a-space>
-              <a-space @click="(e) => doEdit(e, picture)">
+              <a-space v-if="canEdit" @click="(e) => doEdit(e, picture)">
                 <EditOutlined />
                 编辑
               </a-space>
-              <a-space @click="(e) => doDelete(e, picture)">
+              <a-space v-if="canDelete" @click="(e) => doDelete(e, picture)">
                 <DeleteOutlined />
                 删除
               </a-space>
@@ -83,11 +83,15 @@ interface Props {
   showOp?: boolean
   onReload?: () => void
   spaceId?: number
+  canEdit?: boolean
+  canDelete?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   dataList: () => [],
   loading: false,
   showOp: false,
+  canDelete: false,
+  canEdit: false,
 })
 
 const router = useRouter()

@@ -4,17 +4,26 @@
     <a-flex justify="space-between">
       <a-space align="baseline">
         <div v-if="space.spaceLevel === SPACE_LEVEL_ENUM.FLAGSHIP" class="flagship-icon">💎</div>
-        <h2>{{ space.spaceName }}</h2>
+        <h2>{{ space.spaceName }} ({{ SPACE_TYPE_MAP[space.spaceType] }})</h2>
       </a-space>
       <a-space size="middle">
-        <a-button type="primary" @click="showModal">+ 创建图片</a-button>
+        <a-button v-if="canUploadPicture" type="primary" @click="showModal">+ 创建图片</a-button>
         <a-modal v-model:open="open" width="50%" destroyOnClose :footer="null">
           <AddPicturePage :spaceId="props.id" />
         </a-modal>
         <a-button
+          v-if="canManageSpaceUser"
+          type="primary"
+          :icon="h(TeamOutlined)"
+          :href="`/spaceUserManage/${props.id}`"
+          ghost
+          >成员管理</a-button
+        >
+        <a-button
+          v-if="canManageSpaceUser"
           type="primary"
           :icon="h(BarChartOutlined)"
-          :href="`/space_analyze?spaceId=${spaceId}`"
+          :href="`/space_analyze?spaceId=${props.id}`"
           ghost
           >空间分析</a-button
         >
@@ -36,7 +45,14 @@
     <a-tabs v-model:activeKey="showType">
       <a-tab-pane key="list" tab="列表">
         <!-- 展示图片组件 -->
-        <PictureList :dataList="dataList" :loading="loading" :showOp="true" :onReload="fetchData" />
+        <PictureList
+          :dataList="dataList"
+          :loading="loading"
+          :showOp="true"
+          :onReload="fetchData"
+          :canEdit="canEditPicture"
+          :canDelete="canDeletePicture"
+        />
       </a-tab-pane>
       <a-tab-pane key="table" tab="表格" force-render>
         <!-- 展示图片表格组件 -->
@@ -45,7 +61,9 @@
           :loading="loading"
           :showOp="true"
           :onReload="fetchData"
-          :spaceId="spaceId as unknown as number"
+          :spaceId="props.id"
+          :canEdit="canEditPicture"
+          :canDelete="canDeletePicture"
         />
       </a-tab-pane>
     </a-tabs>
@@ -60,17 +78,17 @@
   </div>
 </template>
 <script setup lang="ts">
-import { h, onMounted, ref, watch } from 'vue'
+import { computed, h, onMounted, ref, watch } from 'vue'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import PictureList from '@/components/PictureList.vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { formatSize } from '@/utils'
-import { SPACE_LEVEL_ENUM } from '@/constants/Space.ts'
+import { SPACE_LEVEL_ENUM, SPACE_PERMISSION_ENUM, SPACE_TYPE_MAP } from '@/constants/Space.ts'
 import AddPicturePage from '@/pages/AddPicturePage.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import 'vue3-colorpicker/style.css'
-import { BarChartOutlined } from '@ant-design/icons-vue'
+import { BarChartOutlined, TeamOutlined } from '@ant-design/icons-vue'
 import PictureTable from '@/components/PictureTable.vue'
 import { useRoute } from 'vue-router'
 
@@ -93,7 +111,7 @@ const space = ref<API.SpaceVO>({})
 const fetchSpaceDetail = async () => {
   try {
     const res = await getSpaceVoByIdUsingGet({
-      id: spaceId.value as unknown as number,
+      id: props.id,
     })
     if (res.data.data) {
       space.value = res.data.data
@@ -129,7 +147,7 @@ const fetchData = async () => {
   loading.value = true
   const params = {
     ...searchParams.value,
-    spaceId: spaceId.value as unknown as number,
+    spaceId: props.id,
   }
   const res = await listPictureVoByPageUsingPost(params)
   if (res.data.data) {
@@ -151,24 +169,31 @@ const onSearch = (newSearchParams: API.PictureQueryRequest) => {
   }
   fetchData()
 }
-// 组件挂载时获取数据
-const route = useRoute()
-
-// 使用 number 类型存储 spaceId
-const spaceId = ref<string>(String(props.id))
 
 // 监听 spaceId 变化，重新加载数据
 watch(
-  () => route.params.id,
+  () => props.id,
   (newId) => {
     if (newId) {
-      spaceId.value = newId as string
       fetchSpaceDetail()
       fetchData()
     }
   },
   { immediate: true },
 )
+
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (space.value.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canManageSpaceUser = createPermissionChecker(SPACE_PERMISSION_ENUM.SPACE_USER_MANAGE)
+const canUploadPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_UPLOAD)
+const canEditPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDeletePicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
 </script>
 
 <style scoped>
