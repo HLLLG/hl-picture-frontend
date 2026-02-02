@@ -112,7 +112,7 @@ const getMenuKeyByPath = (fullPath: string) => {
 
 const current = ref<string[]>([])
 // 监听路由变化，高亮菜单项
-watchEffect(
+watch(
   () => route.fullPath,
   (fullPath) => {
     current.value = [getMenuKeyByPath(fullPath)]
