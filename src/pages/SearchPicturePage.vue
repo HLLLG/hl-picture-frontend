@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import {
-  getPictureVoByIdUsingPost,
+  getPictureVoByIdUsingGet,
   searchPictureByPictureUsingPost,
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
@@ -76,7 +76,7 @@ const picture = ref<API.PictureVO>({})
 const getOldPicture = async () => {
   const id = route.query?.pictureId
   if (id) {
-    const res = await getPictureVoByIdUsingPost({
+    const res = await getPictureVoByIdUsingGet({
       id: id,
     })
     if (res.data.code === 0 || res.data.data) {

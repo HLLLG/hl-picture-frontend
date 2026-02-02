@@ -14,7 +14,7 @@
         <a-button
           type="primary"
           :icon="h(BarChartOutlined)"
-          :href="`/space_analyze?spaceId=${props.id}`"
+          :href="`/space_analyze?spaceId=${spaceId}`"
           ghost
           >空间分析</a-button
         >
@@ -24,7 +24,7 @@
           >
           <a-progress
             type="circle"
-            :percent="((space.totalSize * 100) / space.maxSize).toFixed(2)"
+            :percent="(((space.totalSize ?? 0) * 100) / (space.maxSize || 1)).toFixed(2)"
             :size="48"
           />
         </a-tooltip>
@@ -45,7 +45,7 @@
           :loading="loading"
           :showOp="true"
           :onReload="fetchData"
-          :spaceId="props.id"
+          :spaceId="spaceId as unknown as number"
         />
       </a-tab-pane>
     </a-tabs>
@@ -60,19 +60,19 @@
   </div>
 </template>
 <script setup lang="ts">
-import { h, onMounted, ref } from 'vue'
+import { h, onMounted, ref, watch } from 'vue'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import PictureList from '@/components/PictureList.vue'
-import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
+import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { formatSize } from '@/utils'
 import { SPACE_LEVEL_ENUM } from '@/constants/Space.ts'
 import AddPicturePage from '@/pages/AddPicturePage.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import 'vue3-colorpicker/style.css'
-import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
-import { BarChartOutlined, BarsOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { BarChartOutlined } from '@ant-design/icons-vue'
 import PictureTable from '@/components/PictureTable.vue'
+import { useRoute } from 'vue-router'
 
 interface Props {
   id: number
@@ -92,8 +92,8 @@ const space = ref<API.SpaceVO>({})
 
 const fetchSpaceDetail = async () => {
   try {
-    const res = await getSpaceVoByIdUsingPost({
-      id: props.id,
+    const res = await getSpaceVoByIdUsingGet({
+      id: spaceId.value as unknown as number,
     })
     if (res.data.data) {
       space.value = res.data.data
@@ -129,7 +129,7 @@ const fetchData = async () => {
   loading.value = true
   const params = {
     ...searchParams.value,
-    spaceId: props.id,
+    spaceId: spaceId.value as unknown as number,
   }
   const res = await listPictureVoByPageUsingPost(params)
   if (res.data.data) {
@@ -151,12 +151,24 @@ const onSearch = (newSearchParams: API.PictureQueryRequest) => {
   }
   fetchData()
 }
+// 组件挂载时获取数据
+const route = useRoute()
 
-// 页面请求的时候加载一次
-onMounted(() => {
-  fetchSpaceDetail()
-  fetchData()
-})
+// 使用 number 类型存储 spaceId
+const spaceId = ref<string>(String(props.id))
+
+// 监听 spaceId 变化，重新加载数据
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+      spaceId.value = newId as string
+      fetchSpaceDetail()
+      fetchData()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>

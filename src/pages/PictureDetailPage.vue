@@ -109,15 +109,15 @@ import { message } from 'ant-design-vue'
 import {
   deletePictureUsingPost,
   doPictureReviewUsingPost,
-  getPictureVoByIdUsingPost,
+  getPictureVoByIdUsingGet,
 } from '@/api/pictureController.ts'
 import { computed, h, onMounted, ref } from 'vue'
 import { downloadImage, formatSize, toHexColor } from '@/utils'
 import {
+  CloseOutlined,
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
-  CloseOutlined,
   ShareAltOutlined,
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
@@ -136,7 +136,7 @@ const picture = ref<API.PictureVO>({})
 // 获取图片数据
 const fetchPictureDetail = async () => {
   try {
-    const res = await getPictureVoByIdUsingPost({
+    const res = await getPictureVoByIdUsingGet({
       id: props.id,
     })
     if (res.data.data) {

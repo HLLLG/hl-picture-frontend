@@ -118,20 +118,15 @@ import { h, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   editPictureUsingPost,
-  getPictureVoByIdUsingPost,
+  getPictureVoByIdUsingGet,
   listPictureTagCategoryUsingGet,
 } from '@/api/pictureController.ts'
 import { useRoute, useRouter } from 'vue-router'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import { formatSize } from '@/utils'
-import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
+import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import ImageCropper from '@/components/ImageCropper.vue'
-import {
-  ArrowLeftOutlined,
-  EditOutlined,
-  FullscreenOutlined,
-  RollbackOutlined,
-} from '@ant-design/icons-vue'
+import { ArrowLeftOutlined, EditOutlined, FullscreenOutlined } from '@ant-design/icons-vue'
 import ImageOutPainting from '@/components/ImageOutPainting.vue'
 
 interface Props {
@@ -208,7 +203,7 @@ const getTagCategoryOptions = async () => {
 // 获取旧的图片信息
 const getOldPicture = async () => {
   const pictureId = route.query?.id
-  const res = await getPictureVoByIdUsingPost({
+  const res = await getPictureVoByIdUsingGet({
     id: pictureId,
   })
   if (res.data.code === 0 || res.data.data) {
@@ -228,7 +223,7 @@ const getOldSpace = async () => {
   if (!props.spaceId) {
     return
   }
-  const res = await getSpaceVoByIdUsingPost({ id: props.spaceId })
+  const res = await getSpaceVoByIdUsingGet({ id: props.spaceId })
   if (res.data.code === 0 && res.data.data) {
     space.value = res.data.data
   } else {
