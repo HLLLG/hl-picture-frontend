@@ -64,14 +64,13 @@ import { h, onMounted, ref } from 'vue'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import PictureList from '@/components/PictureList.vue'
-import { getSpaceVoByIdUsingPost } from '@/api/spaceController.ts'
+import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { formatSize } from '@/utils'
 import { SPACE_LEVEL_ENUM } from '@/constants/Space.ts'
 import AddPicturePage from '@/pages/AddPicturePage.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import 'vue3-colorpicker/style.css'
-import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
-import { BarChartOutlined, BarsOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { BarChartOutlined } from '@ant-design/icons-vue'
 import PictureTable from '@/components/PictureTable.vue'
 
 interface Props {
@@ -92,7 +91,7 @@ const space = ref<API.SpaceVO>({})
 
 const fetchSpaceDetail = async () => {
   try {
-    const res = await getSpaceVoByIdUsingPost({
+    const res = await getSpaceVoByIdUsingGet({
       id: props.id,
     })
     if (res.data.data) {

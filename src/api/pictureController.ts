@@ -47,14 +47,14 @@ export async function editPictureByBatchUsingPost(
   })
 }
 
-/** getPictureVOById POST /api/picture/get/vo */
-export async function getPictureVoByIdUsingPost(
+/** getPictureVOById GET /api/picture/get/vo */
+export async function getPictureVoByIdUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getPictureVOByIdUsingPOSTParams,
+  params: API.getPictureVOByIdUsingGETParams,
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponsePictureVO_>('/api/picture/get/vo', {
-    method: 'POST',
+    method: 'GET',
     params: {
       ...params,
     },
