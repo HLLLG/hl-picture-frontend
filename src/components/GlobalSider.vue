@@ -88,20 +88,16 @@ const router = useRouter()
 const route = useRoute()
 
 const getMenuKeyByPath = (fullPath: string) => {
-  console.log('fullPath = ' + fullPath)
   // 提取路径部分（不含查询参数）
   const path = fullPath.split('?')[0]
 
   // 检查是否为空间路径
   if (path.startsWith('/space/')) {
     const spaceId = path.split('/')[2]
-    console.log('spaceId = ' + spaceId)
     // 如果在团队空间列表中，返回团队空间的 key（不带查询参数）
-    console.log('teamSpaceList = ' + teamSpaceList.value.length)
     const isTeamSpace = teamSpaceList.value.some(
       (spaceUser) => String(spaceUser.spaceId) === spaceId,
     )
-    console.log('isTeamSpace = ' + isTeamSpace)
     if (isTeamSpace) return `/space/${spaceId}`
     // 否则是私有空间，高亮 /my_space
     return '/my_space'
@@ -119,10 +115,9 @@ const current = ref<string[]>([])
 // 监听路由变化，高亮菜单项
 watch(
   () => route.fullPath,
-  (fullPath) => {
-    fetchTeamSpacesList()
+  async (fullPath) => {
+    await fetchTeamSpacesList()
     current.value = [getMenuKeyByPath(fullPath)]
-    console.log('current = ' + current.value)
   },
   { immediate: true },
 )
