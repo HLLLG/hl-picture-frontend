@@ -50,6 +50,7 @@
           :loading="loading"
           :showOp="true"
           :onReload="fetchData"
+          :spaceId="props.id"
           :canEdit="canEditPicture"
           :canDelete="canDeletePicture"
         />

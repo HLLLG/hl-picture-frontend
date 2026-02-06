@@ -102,7 +102,7 @@ const doEdit = (e: Event, picture: API.PictureVO) => {
   e.stopPropagation()
   // 跳转时携带spaceId
   router.push({
-    path: `/add_picture?id=`,
+    path: `/add_picture`,
     query: {
       id: picture.id,
       spaceId: picture.spaceId,
