@@ -9,7 +9,7 @@
     <!-- 空间信息和使用进度 -->
     <a-space v-if="spaceId" size="middle">
       <a-typography-paragraph type="secondary" style="margin: 0">
-        上传至空间：<a :href="`/space/${props.spaceId}`" target="_blank">{{ props.spaceId }}</a>
+        上传至空间：<a :href="`/space/${spaceId}`" target="_blank">{{ spaceId }}</a>
       </a-typography-paragraph>
       <a-tooltip placement="topRight">
         <template #title
@@ -26,10 +26,10 @@
     <!-- 选择上传方式   -->
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
-        <PictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="props.spaceId" />
+        <PictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="spaceId" />
       </a-tab-pane>
       <a-tab-pane key="url" tab="URL 上传" force-render>
-        <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="props.spaceId" />
+        <UrlPictureUpload :picture="picture" :onSuccess="onSuccess" :spaceId="spaceId" />
       </a-tab-pane>
     </a-tabs>
     <!-- 图片编辑功能栏 -->
@@ -59,6 +59,7 @@
         :imageUrl="picture?.url"
         :picture="picture"
         :spaceId="spaceId"
+        :space="space"
         :onSuccess="onCropSuccess"
       />
       <!-- AI 扩图组件 -->
@@ -114,7 +115,7 @@
 
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
-import { h, onMounted, reactive, ref } from 'vue'
+import { h, onMounted, reactive, ref, watchEffect } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   editPictureUsingPost,
@@ -138,6 +139,8 @@ const router = useRouter()
 const picture = ref<API.PictureVO>()
 const uploadType = ref<'file' | 'url'>('file')
 const route = useRoute()
+
+const spaceId = (route.query?.spaceId as unknown as number) ?? props.spaceId
 
 /**
  * 图片上传成功
@@ -206,7 +209,7 @@ const getOldPicture = async () => {
   const res = await getPictureVoByIdUsingGet({
     id: pictureId,
   })
-  if (res.data.code === 0 || res.data.data) {
+  if (res.data.code === 0 && res.data.data) {
     const data = res.data.data
     picture.value = data
     pictureForm.name = data.name
@@ -220,10 +223,11 @@ const getOldPicture = async () => {
 const space = ref<API.SpaceVO>({})
 
 const getOldSpace = async () => {
-  if (!props.spaceId) {
+  if (!spaceId) {
     return
   }
-  const res = await getSpaceVoByIdUsingGet({ id: props.spaceId })
+
+  const res = await getSpaceVoByIdUsingGet({ id: spaceId })
   if (res.data.code === 0 && res.data.data) {
     space.value = res.data.data
   } else {
@@ -235,6 +239,7 @@ onMounted(() => {
   getTagCategoryOptions()
   getOldPicture()
   getOldSpace()
+  console.log('spaceId' + spaceId)
 })
 
 // 返回上个页面
@@ -258,7 +263,7 @@ const doCropPicture = () => {
  * 图片裁剪上传成功
  * @param newPicture
  */
-const onCropSuccess = (newPicture: API.PictureVO) => {
+const onCropSuccess = (newPicture?: API.PictureVO) => {
   picture.value = newPicture
 }
 

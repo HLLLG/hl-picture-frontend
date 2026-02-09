@@ -19,7 +19,7 @@
     ></vue-cropper>
     <div style="margin-bottom: 16px"></div>
     <!-- 协同编辑操作 -->
-    <div class="image-edit-actions">
+    <div class="image-edit-actions" v-if="isTeamSpace">
       <a-space>
         <a-button v-if="editingUser" disabled>{{ editingUser.userName }} 正在编辑</a-button>
         <a-button v-if="canEnterEdit" type="primary" ghost @click="enterEdit">进入编辑</a-button>
@@ -30,11 +30,11 @@
     <!-- 操作按钮 -->
     <div class="image-cropper-actions">
       <a-space>
-        <a-button @click="rotateLeft">向左旋转</a-button>
-        <a-button @click="rotateRight">向右旋转</a-button>
-        <a-button @click="changeScale(1)">放大</a-button>
-        <a-button @click="changeScale(-1)">缩小</a-button>
-        <a-button type="primary" @click="handleConfirm">确认</a-button>
+        <a-button @click="rotateLeft" :disabled="!canEdit">向左旋转</a-button>
+        <a-button @click="rotateRight" :disabled="!canEdit">向右旋转</a-button>
+        <a-button @click="changeScale(1)" :disabled="!canEdit">放大</a-button>
+        <a-button @click="changeScale(-1)" :disabled="!canEdit">缩小</a-button>
+        <a-button type="primary" @click="handleConfirm" :disabled="!canEdit">确认</a-button>
       </a-space>
     </div>
   </a-modal>
@@ -47,19 +47,25 @@ import { uploadPictureUsingPost } from '@/api/pictureController.ts'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import PictureEditWebSocket from '@/utils/PictureEditWebSocket.ts'
 import { PICTURE_EDIT_ACTION_ENUM, PICTURE_EDIT_MESSAGE_TYPE_ENUM } from '@/constants/Picture.ts'
+import { SPACE_TYPE_ENUM } from '@/constants/Space.ts'
 
 interface Props {
   imageUrl?: string
   picture?: API.PictureVO
-  onSuccess?: (newPicture: API.PictureVO) => void
+  onSuccess?: (newPicture?: API.PictureVO) => void
   spaceId?: number
+  space?: API.SpaceVO
 }
 const props = defineProps<Props>()
+
+const isTeamSpace = computed(() => {
+  return props.space?.spaceType === SPACE_TYPE_ENUM.TEAM
+})
 
 // 编辑器组建的引用
 const cropperRef = ref()
 // 改变图片大小
-const changeScale = (num) => {
+const changeScale = (num: number) => {
   num = num || 1
   cropperRef.value?.changeScale(num)
   if (num > 0) {
@@ -105,6 +111,12 @@ const handleUpload = async ({ file }: any) => {
       message.success('图片上传成功')
       // 将上传成功的图片信息传递给父组件
       props.onSuccess?.(res.data.data)
+      if (isTeamSpace.value) {
+        // 发送保存编辑的消息
+        websocket?.sendMessage({
+          type: PICTURE_EDIT_MESSAGE_TYPE_ENUM.EDIT_SAVE,
+        })
+      }
       // 关闭裁剪组件
       closeModal()
     } else {
@@ -121,7 +133,11 @@ const open = ref<boolean>(false)
 
 const openModal = () => {
   open.value = true
-  initWebsocket()
+  // 团队空间才需要建立 WebSocket 连接
+  console.log(props.space?.id)
+  if (isTeamSpace.value) {
+    initWebsocket()
+  }
 }
 
 const closeModal = () => {
@@ -155,6 +171,10 @@ const canExitEdit = computed(() => {
 })
 // 是否可以编辑
 const canEdit = computed(() => {
+  // 不是团队空间，则默认可编辑
+  if (!isTeamSpace.value) {
+    return true
+  }
   return editingUser.value?.id === loginUser?.id
 })
 
@@ -211,6 +231,22 @@ const initWebsocket = () => {
       case PICTURE_EDIT_ACTION_ENUM.ZOOM_OUT:
         changeScale(-1)
         break
+    }
+  })
+
+  // 监听图片更新消息
+  websocket.on(PICTURE_EDIT_MESSAGE_TYPE_ENUM.EDIT_SAVE, (msg: any) => {
+    console.log('收到编辑保存消息：', msg)
+    const saverId = msg.user?.id
+    const isSelf = saverId && loginUser?.id && saverId === loginUser.id
+
+    // 更新图片展示（所有人都更新）
+    props.onSuccess?.(msg.picture)
+
+    // 不是自己保存：关闭弹窗 + 清理编辑态
+    if (!isSelf) {
+      message.info(`${msg.user?.userName ?? '其他用户'} 已保存，编辑窗口将关闭`)
+      closeModal()
     }
   })
 

@@ -7,6 +7,13 @@ export default class PictureEditWebSocket {
   private socket: WebSocket | null
   private eventHandlers: any
 
+  private reconnectTimer: number | null = null
+  private reconnectAttempts = 0
+  private readonly maxReconnectAttempts = 10
+  private readonly baseDelayMs = 1000
+  private readonly maxDelayMs = 30000
+  private isManuallyClosed = false
+
   constructor(pictureId: number) {
     this.pictureId = pictureId // 当前编辑的图片 ID
     this.socket = null // WebSocket 实例
@@ -17,6 +24,7 @@ export default class PictureEditWebSocket {
    * 初始化 WebSocket 连接
    */
   connect() {
+    this.isManuallyClosed = false
     const url = `ws://localhost:8123/api/ws/picture/edit?pictureId=${this.pictureId}`
     this.socket = new WebSocket(url)
 
@@ -26,6 +34,8 @@ export default class PictureEditWebSocket {
     // 监听连接成功事件
     this.socket.onopen = () => {
       console.log('WebSocket 连接已建立')
+      this.reconnectAttempts = 0
+      this.clearReconnectTimer()
       this.triggerEvent('open')
     }
 
@@ -43,12 +53,14 @@ export default class PictureEditWebSocket {
     this.socket.onclose = (event) => {
       console.log('WebSocket 连接已关闭:', event)
       this.triggerEvent('close', event)
+      if (!this.isManuallyClosed) this.scheduleReconnect()
     }
 
     // 监听错误事件
     this.socket.onerror = (error) => {
       console.error('WebSocket 发生错误:', error)
       this.triggerEvent('error', error)
+      if (!this.isManuallyClosed) this.scheduleReconnect()
     }
   }
 
@@ -57,7 +69,10 @@ export default class PictureEditWebSocket {
    */
   disconnect() {
     if (this.socket) {
-      this.socket.close()
+      this.isManuallyClosed = true
+      this.clearReconnectTimer()
+      this.socket?.close()
+      this.socket = null
       console.log('WebSocket 连接已手动关闭')
     }
   }
@@ -96,6 +111,29 @@ export default class PictureEditWebSocket {
     const handlers = this.eventHandlers[type]
     if (handlers) {
       handlers.forEach((handler: any) => handler(data))
+    }
+  }
+
+  /**
+   * 指数退避重连：1s, 2s, 4s ... 上限 30s，最多 10 次
+   */
+  private scheduleReconnect() {
+    if (this.reconnectTimer !== null) return
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) return
+
+    const delay = Math.min(this.baseDelayMs * 2 ** this.reconnectAttempts, this.maxDelayMs)
+    this.reconnectAttempts += 1
+
+    this.reconnectTimer = window.setTimeout(() => {
+      this.reconnectTimer = null
+      this.connect()
+    }, delay)
+  }
+
+  private clearReconnectTimer() {
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = null
     }
   }
 }
