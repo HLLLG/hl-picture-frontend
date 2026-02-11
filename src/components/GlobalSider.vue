@@ -55,7 +55,9 @@ const fetchTeamSpacesList = async () => {
 
 watchEffect(() => {
   // 登录用户存在时，加载团队空间列表
+
   if (loginUserStore.loginUser.id) {
+    console.log(11111)
     fetchTeamSpacesList()
   }
 })
@@ -112,14 +114,27 @@ const getMenuKeyByPath = (fullPath: string) => {
 
 const current = ref<string[]>([])
 // 监听路由变化，高亮菜单项
-watch(
-  () => route.fullPath,
-  async (fullPath) => {
-    await fetchTeamSpacesList()
-    current.value = [getMenuKeyByPath(fullPath)]
-  },
-  { immediate: true },
-)
+let stopRouteWatch: (() => void) | null = null
+watchEffect(() => {
+  if (loginUserStore.loginUser.id) {
+    if (!stopRouteWatch) {
+      stopRouteWatch = watch(
+        () => route.fullPath,
+        async (fullPath) => {
+          await fetchTeamSpacesList()
+          current.value = [getMenuKeyByPath(fullPath)]
+        },
+        { immediate: true },
+      )
+    }
+  } else {
+    if (stopRouteWatch) {
+      stopRouteWatch()
+      stopRouteWatch = null
+    }
+    current.value = []
+  }
+})
 
 //路由跳转事件
 const doMenuClick = ({ key }: { key: string }) => {

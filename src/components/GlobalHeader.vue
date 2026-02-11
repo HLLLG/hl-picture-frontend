@@ -93,6 +93,11 @@ const originMenu = [
     title: '用户管理',
   },
   {
+    key: '/user_exchange_vip',
+    label: '兑换会员',
+    title: '兑换会员',
+  },
+  {
     key: 'others',
     label: h('a', { href: 'https://github.com/HLLLG', target: '_blank' }, 'HL程序员'),
     title: 'HL程序员',
